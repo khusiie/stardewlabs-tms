@@ -15,19 +15,26 @@ export default async function ClientLayout({
   if (!user) return null;
 
   return (
-    <div className="flex min-h-screen bg-[#0f0f0f]">
-      {/* Sidebar */}
+    <div className="min-h-screen bg-[#0f0f0f]">
+      {/* Sidebar (mobile drawer + desktop fixed) */}
       <ClientSidebar />
 
-      {/* Right side */}
-      <div className="flex-1 flex flex-col">
-        {/* 🔹 Shared padding container */}
-        <div className="px-8 pt-8">
+      {/* Main content */}
+      <div
+        className="
+          flex flex-col
+          min-h-screen
+          w-full
+          md:ml-64
+        "
+      >
+        {/* Header */}
+        <div className="px-4 sm:px-6 md:px-8 pt-4 sm:pt-6 md:pt-8">
           <ClientHeader userEmail={user.email || "User"} />
         </div>
 
-        {/* Page content (same horizontal padding) */}
-        <main className="flex-1 overflow-y-auto px-8 pb-8">
+        {/* Page content */}
+        <main className="flex-1 overflow-y-auto px-4 sm:px-6 md:px-8 pb-6">
           {children}
         </main>
       </div>

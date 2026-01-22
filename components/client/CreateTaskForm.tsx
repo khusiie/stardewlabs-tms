@@ -45,15 +45,14 @@ export default function CreateTaskForm() {
       return;
     }
 
-    // ✅ Redirect after success
     router.push("/dashboard/client/tasks/my-task");
     router.refresh();
   };
 
   return (
-    <div className="max-w-3xl mx-auto mt-8">
+    <div className="w-full px-4 sm:px-6 md:px-0 max-w-3xl mx-auto mt-6 sm:mt-8">
       <Card className="bg-[#1a1a1a] border-[#2a2a2a]">
-        <CardContent className="p-6 space-y-6">
+        <CardContent className="p-4 sm:p-6 space-y-4 sm:space-y-6">
           <Input
             placeholder="Task title"
             value={title}
@@ -81,11 +80,12 @@ export default function CreateTaskForm() {
             </p>
           )}
 
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <Button
               disabled={loading}
               onClick={handleSubmit}
               className="
+                w-full sm:w-auto
                 bg-gradient-to-r from-[#FF2A1A] to-[#FF8A2A]
                 hover:from-[#E51919] hover:to-[#FF9A3A]
                 text-white
@@ -105,6 +105,7 @@ export default function CreateTaskForm() {
               variant="outline"
               onClick={() => router.back()}
               className="
+                w-full sm:w-auto
                 border border-[#2a2a2a]
                 text-gray-300
                 bg-[#111]

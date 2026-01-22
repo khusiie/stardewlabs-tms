@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+  engineType = "binary"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+
+// --------------------
+// Enums
+// --------------------
+enum Role {
+  CLIENT
+  ADMIN
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+// --------------------
+// User model
+// --------------------
+model User {
+  id        String    @id
+  email     String    @unique
+  name      String?
+  role      Role      @default(CLIENT)
+  createdAt DateTime  @default(now())
+
+  // Relations
+  projects  Project[] @relation("UserProjects")
+  tasks     Task[]    @relation("AssignedTasks")
+  comments  Comment[] @relation("UserComments")
+}
+
+// --------------------
+// Project model
+// --------------------
+model Project {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  ownerId     String
+  createdAt   DateTime @default(now())
+
+  owner       User     @relation("UserProjects", fields: [ownerId], references: [id])
+  tasks       Task[]
+}
+
+// --------------------
+// Task model
+// --------------------
+model Task {
+  id          String      @id @default(uuid())
+  title       String
+  description String?
+  status      TaskStatus  @default(PENDING)
+  priority    String?
+  dueDate     DateTime?
+  projectId   String
+  assigneeId  String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  project     Project     @relation(fields: [projectId], references: [id])
+  assignee    User?       @relation("AssignedTasks", fields: [assigneeId], references: [id])
+  comments    Comment[]   @relation("TaskComments")
+}
+
+// --------------------
+// Comment model
+// --------------------
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+  taskId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  task      Task     @relation("TaskComments", fields: [taskId], references: [id])
+  user      User     @relation("UserComments", fields: [userId], references: [id])
+}

@@ -8,10 +8,12 @@ export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const handleLogin = async () => {
     setError("");
+    setLoading(true);
 
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -20,13 +22,23 @@ export default function LoginPage() {
 
     if (error) {
       setError(error.message);
-    } else {
-      router.push("/dashboard");
+      setLoading(false); // only stop on error
+      return;
     }
+
+    // Redirect → component will unmount
+    router.push("/dashboard");
   };
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-black px-4">
+      {/* Full-page loader */}
+      {loading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black text-white">
+          Signing you in…
+        </div>
+      )}
+
       <div className="w-full max-w-md bg-[#111] p-8 rounded-xl text-white">
         <h1 className="text-2xl font-semibold text-center mb-4">
           Welcome Back
@@ -42,7 +54,8 @@ export default function LoginPage() {
             placeholder="Email Address"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full bg-transparent border border-gray-600 text-white px-4 py-3 rounded focus:outline-none focus:border-gray-400 transition"
+            className="w-full bg-transparent border border-gray-600 text-white px-4 py-3 rounded
+              focus:outline-none focus:border-gray-400 transition"
           />
 
           <input
@@ -50,7 +63,8 @@ export default function LoginPage() {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full bg-transparent border border-gray-600 text-white px-4 py-3 rounded focus:outline-none focus:border-gray-400 transition"
+            className="w-full bg-transparent border border-gray-600 text-white px-4 py-3 rounded
+              focus:outline-none focus:border-gray-400 transition"
           />
 
           {error && (
@@ -59,9 +73,10 @@ export default function LoginPage() {
 
           <button
             onClick={handleLogin}
+            disabled={loading}
             className="w-full bg-[#FF3A2E] hover:bg-[#FF5A40] text-white font-medium py-3 rounded transition"
           >
-            Login
+            {loading ? "Signing in..." : "Login"}
           </button>
         </div>
 

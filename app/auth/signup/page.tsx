@@ -32,17 +32,23 @@ export default function SignupPage() {
         return;
       }
 
-      // 3️⃣ Go to dashboard — your guard will redirect based on role
+      // 3️⃣ Redirect (DO NOT stop loading here)
       router.push("/dashboard");
     } catch (err: any) {
-      setError(err.message);
-    } finally {
+      setError(err.message || "Something went wrong");
       setLoading(false);
     }
   };
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-black px-4">
+      {/* Full-screen loader */}
+      {loading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black text-white">
+          Creating your account…
+        </div>
+      )}
+
       <div className="w-full max-w-md bg-[#111] p-8 rounded-xl text-white">
         <h1 className="text-2xl font-semibold text-center mb-4">
           Create Your Account

@@ -1,6 +1,6 @@
 import { requireRole } from "../../lib/requireRole";
 import ClientSidebar from "../../../components/dashboard/clientSidebar";
-import ClientHeader from "../../../components/dashboard/ClientHeader";
+import ClientHeader from "../../../components/dashboard/clientHeader";
 import { getCurrentUser } from "@/app/lib/getCurrentUser";
 import { Role } from "@prisma/client";
 

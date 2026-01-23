@@ -3,7 +3,14 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-export default function TaskCard({ task }: { task: any }) {
+
+import { Task } from "@prisma/client";
+
+type TaskCardProps = {
+  task: Task;
+};
+
+export default function TaskCard({ task }: TaskCardProps) {
   return (
     <Card className="bg-[#1a1a1a] border-[#2a2a2a]">
       <CardContent className="p-5">

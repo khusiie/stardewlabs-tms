@@ -3,11 +3,13 @@ import { getCurrentUser } from "@/app/lib/getCurrentUser";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { Task } from "@prisma/client";
 import {
   getClientTaskStats,
   getClientTasks,
 } from "@/app/actions/client/action";
 
+type ClientTask = Task;
 export default async function ClientDashboard() {
   const user = await getCurrentUser();
 
@@ -74,7 +76,7 @@ export default async function ClientDashboard() {
           </Card>
         ) : (
           <>
-            {tasks.map((task: any) => (
+            {tasks.map((task: ClientTask) => (
               <Card
                 key={task.id}
                 className="bg-[#1a1a1a] border-[#2a2a2a]"

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/app/lib/prisma"; // or your DB client
+import { prisma } from "@/app/lib/prisma";
 
 export async function GET() {
   try {
@@ -8,7 +8,7 @@ export async function GET() {
     });
 
     return NextResponse.json(tasks);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Failed to fetch tasks" },
       { status: 500 }

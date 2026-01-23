@@ -34,11 +34,17 @@ export default function SignupPage() {
 
       // 3️⃣ Redirect (DO NOT stop loading here)
       router.push("/dashboard");
-    } catch (err: any) {
-      setError(err.message || "Something went wrong");
-      setLoading(false);
-    }
+    }   catch (error: unknown) {
+  if (error instanceof Error) {
+    setError(error.message);
+  } else {
+    setError("Something went wrong");
+  }
+}
   };
+
+
+
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-black px-4">

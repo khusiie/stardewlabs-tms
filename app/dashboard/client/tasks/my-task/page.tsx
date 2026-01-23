@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/app/lib/getCurrentUser";
 import { headers } from "next/headers";
 import { Card, CardContent } from "@/components/ui/card";
 import TaskCard from "../../../../../components/client/TaskCard";
+import { Task } from "@prisma/client";
 
 async function getTasks() {
   const headersList = await headers();
@@ -56,7 +57,7 @@ export default async function ClientTasksPage() {
 
       {/* Task List */}
       <div className="space-y-4">
-        {tasks.map((task: any) => (
+        {tasks.map((task: Task) => (
           <TaskCard key={task.id} task={task} />
         ))}
       </div>

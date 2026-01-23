@@ -50,7 +50,7 @@ export default function ClientHeader({
               {page.title}
             </h1>
             {page.subtitle && (
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-gray-400" >
                 {page.subtitle}
               </p>
             )}

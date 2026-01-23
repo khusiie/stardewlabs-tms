@@ -1,18 +1,13 @@
-import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/app/lib/getCurrentUser";
+"use client";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 
-export default async function AdminSettingsPage() {
-  const user = await getCurrentUser();
+export default function AdminSettingsClient() {
+  // UI-only page. Middleware already guarantees ADMIN access.
 
-  if (!user || user.role !== "ADMIN") {
-    redirect("/auth/login");
-  }
-
-  // 🔥 Page-only themed switch (no global changes)
   const themedSwitch =
     "border border-[#2a2a2a] \
      data-[state=checked]:bg-gradient-to-r \
@@ -22,7 +17,6 @@ export default async function AdminSettingsPage() {
 
   return (
     <div className="space-y-10 min-h-screen bg-[#0f0f0f] px-6 py-6">
-   
       {/* Application */}
       <Card className="bg-[#1a1a1a] border-[#2a2a2a]">
         <CardContent className="p-6 space-y-6">
@@ -38,12 +32,7 @@ export default async function AdminSettingsPage() {
               <Input
                 disabled
                 defaultValue="StardewLabs"
-                className="
-                  mt-1
-                  bg-[#0f0f0f]
-                  border-[#2a2a2a]
-                  text-gray-300
-                "
+                className="mt-1 bg-[#0f0f0f] border-[#2a2a2a] text-gray-300"
               />
             </div>
 
@@ -115,18 +104,12 @@ export default async function AdminSettingsPage() {
           </div>
 
           <div className="pt-2">
- <Button
-  size="sm"
-  className="
-    bg-gradient-to-r from-[#FF0A0A] to-[#FF7A1A]
-    hover:from-[#E50909] hover:to-[#FF8A2A]
-    text-white
-    shadow-md shadow-red-500/20
-  "
->
-  Reset Admin Password
-</Button>
-
+            <Button
+              size="sm"
+              className="bg-gradient-to-r from-[#FF0A0A] to-[#FF7A1A] text-white shadow-md shadow-red-500/20"
+            >
+              Reset Admin Password
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -142,23 +125,20 @@ export default async function AdminSettingsPage() {
             These actions are irreversible.
           </p>
 
-        <Button
-  size="sm"
-className="
-
-  bg-red-500/20
-  border border-red-500/40
-  text-red-400
-  hover:bg-red-600/40
-  hover:border-red-500/60
-  hover:text-red-300
-  transition-colors
-"
-
->
-  Delete All Tasks
-</Button>
-
+          <Button
+            size="sm"
+            className="
+              bg-red-500/20
+              border border-red-500/40
+              text-red-400
+              hover:bg-red-600/40
+              hover:border-red-500/60
+              hover:text-red-300
+              transition-colors
+            "
+          >
+            Delete All Tasks
+          </Button>
         </CardContent>
       </Card>
     </div>

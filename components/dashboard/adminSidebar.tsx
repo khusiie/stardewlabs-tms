@@ -3,9 +3,10 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/app/lib/supabase/client";
+import { supabase } from "@/lib/supabase/client";
+import { X } from "lucide-react";
 
-export default function AdminSidebar() {
+export default function AdminSidebar({ onClose }: { onClose?: () => void }) {
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -33,10 +34,22 @@ export default function AdminSidebar() {
         z-50
       "
     >
+      {/* Mobile Close Button */}
+      {onClose && (
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white lg:hidden transition"
+          aria-label="Close menu"
+        >
+          <X size={24} />
+        </button>
+      )}
+
       {/* Logo */}
       <Link
         href="/dashboard/admin"
         className="mb-10 flex items-center gap-3"
+        onClick={onClose}
       >
         <Image
           src="/logo.svg"
@@ -57,6 +70,7 @@ export default function AdminSidebar() {
             key={item.name}
             href={item.href}
             className="block rounded-lg px-4 py-3 text-gray-300 hover:bg-[#1a1a1a] hover:text-white transition"
+            onClick={onClose}
           >
             {item.name}
           </Link>

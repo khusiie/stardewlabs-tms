@@ -1,21 +1,7 @@
-import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/app/lib/getCurrentUser";
-import ProfileView from "@/components/profile/ProfileView";
-import { Role } from "@prisma/client";
+import AdminProfileClient from "@/app/dashboard/admin/profile/AdminProfileClient";
 
-export default async function AdminProfilePage() {
-  const user = await getCurrentUser();
-
-  if (!user || !user.role) {
-    redirect("/auth/login");
-  }
-
-  const { email, role } = user;
-
-  return (
-    <ProfileView
-      email={email ?? ""}
-      role={role as Role}
-    />
-  );
+export default function AdminProfilePage() {
+  // No auth logic here.
+  // Middleware already guarantees ADMIN access.
+  return <AdminProfileClient />;
 }

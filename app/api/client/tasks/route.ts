@@ -1,39 +1,35 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/app/lib/prisma";
-import { getCurrentUser } from "@/app/lib/getCurrentUser";
+import { prisma } from "@/lib/prisma";
+import { getSupabaseServer } from "@/lib/supabase/server";
 
-/* ---------------- GET TASKS ---------------- */
 export async function GET() {
-  const user = await getCurrentUser();
+  const supabase = await getSupabaseServer();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const tasks = await prisma.task.findMany({
-    where: {
-      assigneeId: user.id,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
+    where: { assigneeId: user.id },
+    orderBy: { createdAt: "desc" },
   });
 
   return NextResponse.json(tasks);
 }
 
-/* ---------------- CREATE TASK ---------------- */
 export async function POST(req: Request) {
-  const user = await getCurrentUser();
+  const supabase = await getSupabaseServer();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { title, description, dueDate } = await req.json();

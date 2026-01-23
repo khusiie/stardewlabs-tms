@@ -1,58 +1,44 @@
-import { headers } from "next/headers";
+import { prisma } from "@/lib/prisma";
 
-export async function getClientTaskStats() {
-  const headersList = await headers();
+/**
+ * Get client dashboard stats
+ * Auth is guaranteed by middleware
+ * userId === assigneeId
+ */
+export async function getClientTaskStats(userId: string) {
+  const [total, pending, inProgress, completed] = await Promise.all([
+    prisma.task.count({
+      where: { assigneeId: userId },
+    }),
+    prisma.task.count({
+      where: { assigneeId: userId, status: "PENDING" },
+    }),
+    prisma.task.count({
+      where: { assigneeId: userId, status: "IN_PROGRESS" },
+    }),
+    prisma.task.count({
+      where: { assigneeId: userId, status: "COMPLETED" },
+    }),
+  ]);
 
-  const host = headersList.get("host");
-  const cookie = headersList.get("cookie"); // 🔑 THIS IS THE FIX
-
-  const protocol =
-    process.env.NODE_ENV === "development"
-      ? "http"
-      : "https";
-
-  const res = await fetch(
-    `${protocol}://${host}/api/client/tasks/stats`,
-    {
-      headers: {
-        cookie: cookie ?? "", // ✅ forward auth cookies
-      },
-      cache: "no-store",
-    }
-  );
-
-  if (!res.ok) {
-    throw new Error("Failed to fetch task stats");
-  }
-
-  return res.json();
+  return {
+    total,
+    pending,
+    inProgress,
+    completed,
+  };
 }
 
-export async function getClientTasks(limit = 5) {
-  const headersList = await headers();
-  const host = headersList.get("host");
-  const cookie = headersList.get("cookie");
-
-  const protocol =
-    process.env.NODE_ENV === "development"
-      ? "http"
-      : "https";
-
-  const res = await fetch(
-    `${protocol}://${host}/api/client/tasks`,
-    {
-      headers: {
-        cookie: cookie ?? "",
-      },
-      cache: "no-store",
-    }
-  );
-
-  if (!res.ok) {
-    throw new Error("Failed to fetch tasks");
-  }
-
-  const tasks = await res.json();
-
-  return tasks.slice(0, limit);
+/**
+ * Get recent client tasks
+ */
+export async function getClientTasks(
+  userId: string,
+  limit = 5
+) {
+  return prisma.task.findMany({
+    where: { assigneeId: userId },
+    orderBy: { createdAt: "desc" },
+    take: limit,
+  });
 }

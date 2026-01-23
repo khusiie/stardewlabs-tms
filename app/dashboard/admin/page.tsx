@@ -1,5 +1,3 @@
-import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/app/lib/getCurrentUser";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Prisma, TaskStatus } from "@prisma/client";
@@ -8,7 +6,7 @@ import {
   getAllTasks,
 } from "@/app/actions/admin/task.action";
 
-/* ✅ FIXED */
+/* Status badge styles */
 const statusStyles: Record<TaskStatus, string> = {
   PENDING: "border-yellow-500/30 text-yellow-400 bg-yellow-500/10",
   IN_PROGRESS: "border-blue-500/30 text-blue-400 bg-blue-500/10",
@@ -27,15 +25,9 @@ type TaskWithRelations = Prisma.TaskGetPayload<{
 }>;
 
 export default async function AdminDashboard() {
-  const user = await getCurrentUser();
 
-  if (!user || user.role !== "ADMIN") {
-    redirect("/auth/login");
-  }
 
   const stats = await getAdminTaskStats();
-
-  /* ✅ FIXED */
   const tasks = (await getAllTasks(5)) as TaskWithRelations[];
 
   const cards = [
@@ -109,12 +101,7 @@ export default async function AdminDashboard() {
 
                     <Button
                       size="sm"
-                      className="
-                        bg-gradient-to-r from-[#FF0A0A] to-[#FF7A1A]
-                        hover:from-[#E50909] hover:to-[#FF8A2A]
-                        text-white
-                        shadow-md shadow-red-500/20
-                      "
+                      className="bg-gradient-to-r from-[#FF0A0A] to-[#FF7A1A] text-white"
                     >
                       Assign
                     </Button>

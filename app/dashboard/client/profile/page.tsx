@@ -1,22 +1,5 @@
-import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/app/lib/getCurrentUser";
-import ProfileView from "@/components/profile/ProfileView";
-import { Role } from "@prisma/client";
+import ClientProfileClient from "./ClientProfileClient";
 
-export default async function ClientProfilePage() {
-  const user = await getCurrentUser();
-
-  if (!user || !user.role) {
-    redirect("/auth/login");
-  }
-
-  //  TypeScript now KNOWS these are defined
-  const { email, role } = user;
-
-  return (
-    <ProfileView
-      email={email ?? ""}
-      role={role as Role}
-    />
-  );
+export default function ClientProfilePage() {
+  return <ClientProfileClient />;
 }

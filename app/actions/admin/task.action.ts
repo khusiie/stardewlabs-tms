@@ -1,16 +1,9 @@
 "use server";
 
-import { prisma } from "@/app/lib/prisma";
-import { getCurrentUser } from "@/app/lib/getCurrentUser";
+import { prisma } from "@/lib/prisma";
 
-// ✅ Admin stats
+
 export async function getAdminTaskStats() {
-  const user = await getCurrentUser();
-
-  if (!user || user.role !== "ADMIN") {
-    throw new Error("Unauthorized");
-  }
-
   const [total, pending, inProgress, completed] = await Promise.all([
     prisma.task.count(),
     prisma.task.count({ where: { status: "PENDING" } }),
@@ -21,14 +14,8 @@ export async function getAdminTaskStats() {
   return { total, pending, inProgress, completed };
 }
 
-// Admin task list
+// ✅ Admin task list
 export async function getAllTasks(limit?: number) {
-  const user = await getCurrentUser();
-
-  if (!user || user.role !== "ADMIN") {
-    throw new Error("Unauthorized");
-  }
-
   return prisma.task.findMany({
     take: limit,
     orderBy: { createdAt: "desc" },
@@ -45,7 +32,7 @@ export async function getAllTasks(limit?: number) {
   });
 }
 
-//  Update status (what you already had)
+// ✅ Update task status
 export async function updateTaskStatus({
   taskId,
   status,
@@ -53,12 +40,6 @@ export async function updateTaskStatus({
   taskId: string;
   status: "PENDING" | "IN_PROGRESS" | "COMPLETED";
 }) {
-  const user = await getCurrentUser();
-
-  if (!user || user.role !== "ADMIN") {
-    throw new Error("Unauthorized");
-  }
-
   await prisma.task.update({
     where: { id: taskId },
     data: { status },

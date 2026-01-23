@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/app/lib/supabase/client";
+import { supabase } from "@/lib/supabase/client";
 import { Menu, X } from "lucide-react";
 
 export default function ClientSidebar() {

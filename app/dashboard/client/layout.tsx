@@ -1,18 +1,18 @@
-import { requireRole } from "../../lib/requireRole";
+"use client";
+
 import ClientSidebar from "@/components/dashboard/clientSidebar";
 import ClientHeader from "@/components/dashboard/clientHeader";
-import { getCurrentUser } from "@/app/lib/getCurrentUser";
-import { Role } from "@prisma/client";
+import { useAuthUser } from "@/lib/supabase/useAuthUser";
 
-export default async function ClientLayout({
+export default function ClientLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  await requireRole([Role.CLIENT]);
+  const { userId, email, loading } = useAuthUser();
 
-  const user = await getCurrentUser();
-  if (!user) return null;
+  if (loading) return null;
+  if (!userId) return null; // middleware already redirected
 
   return (
     <div className="flex bg-[#0f0f0f] min-h-screen">
@@ -23,13 +23,13 @@ export default async function ClientLayout({
       <div className="flex-1 flex flex-col w-full md:w-auto">
         {/* Mobile top bar spacer */}
         <div className="md:hidden h-[57px]" />
-        
-        {/* Shared padding container - responsive padding */}
+
+        {/* Header */}
         <div className="px-4 sm:px-6 md:px-8 pt-4 sm:pt-6 md:pt-8">
-          <ClientHeader userEmail={user.email || "User"} />
+          <ClientHeader userEmail={email ?? "User"} />
         </div>
 
-        {/* Page content (same horizontal padding) */}
+        {/* Page content */}
         <main className="flex-1 overflow-y-auto px-4 sm:px-6 md:px-8 pb-4 sm:pb-6 md:pb-8">
           {children}
         </main>

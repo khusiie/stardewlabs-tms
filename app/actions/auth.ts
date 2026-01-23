@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@/app/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { createClient } from "@supabase/supabase-js";
 
 export async function signupAction(email: string, password: string) {

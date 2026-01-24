@@ -12,6 +12,13 @@ export const prisma =
     log: ["error"],
   });
 
+(async () => {
+  const result = await prisma.$queryRawUnsafe(`select current_user;`);
+  console.log("🔍 ACTUAL DB USER:", result);
+})();
+
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;
 }
+
+

@@ -1,4 +1,4 @@
-import ClientDashboardClient from "@/app/dashboard/client/ClientDashboard";
+import ClientDashboardClient from "@/components/client/ClientDashboard";
 
 export default function ClientDashboardPage() {
 

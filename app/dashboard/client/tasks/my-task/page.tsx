@@ -1,4 +1,4 @@
-import ClientMyTasksClient from "@/app/dashboard/client/tasks/my-task/ClientMyTasksClient";
+import ClientMyTasksClient from "@/components/client/ClientMyTasksClient";
 
 export default function ClientTasksPage() {
   // Auth is handled by middleware

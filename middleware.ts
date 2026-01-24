@@ -3,8 +3,14 @@ import type { NextRequest } from "next/server";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 
 export async function middleware(req: NextRequest) {
-  const res = NextResponse.next();
   const pathname = req.nextUrl.pathname;
+
+  // ✅ CRITICAL: never run middleware for API routes
+  if (pathname.startsWith("/api")) {
+    return NextResponse.next();
+  }
+
+  const res = NextResponse.next();
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -28,26 +34,21 @@ export async function middleware(req: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // 🔐 Protect dashboard
   if (!user && pathname.startsWith("/dashboard")) {
     return NextResponse.redirect(new URL("/auth/login", req.url));
   }
 
+  // 🔁 Logged-in users should not see auth pages
   if (user && pathname.startsWith("/auth")) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
-  if (
-    user &&
-    (pathname.startsWith("/dashboard/admin") ||
-      pathname.startsWith("/api/admin"))
-  ) {
+  // 🛡️ Admin-only pages (UI only, NOT API)
+  if (user && pathname.startsWith("/dashboard/admin")) {
     const role = user.app_metadata?.role;
 
     if (role !== "ADMIN") {
-      if (pathname.startsWith("/api")) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-      }
-
       return NextResponse.redirect(
         new URL("/dashboard/not-authorized", req.url)
       );
@@ -58,5 +59,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/auth/:path*", "/api/:path*"],
+  matcher: ["/dashboard/:path*", "/auth/:path*"],
 };

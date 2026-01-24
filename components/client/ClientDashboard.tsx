@@ -4,10 +4,17 @@ import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Task } from "@prisma/client";
 import { useAuthUser } from "@/lib/supabase/useAuthUser";
 
-type ClientTask = Task;
+/* ---------------- TYPES (NO PRISMA) ---------------- */
+
+type TaskStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED";
+
+type ClientTask = {
+  id: string;
+  title: string;
+  status: TaskStatus;
+};
 
 type ClientTaskStats = {
   total: number;
@@ -16,12 +23,12 @@ type ClientTaskStats = {
   completed: number;
 };
 
+/* ---------------- COMPONENT ---------------- */
 
 export default function ClientDashboardClient() {
   const { userId, loading } = useAuthUser();
 
   const [stats, setStats] = useState<ClientTaskStats | null>(null);
-
   const [tasks, setTasks] = useState<ClientTask[]>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,15 +46,12 @@ export default function ClientDashboardClient() {
           throw new Error("Failed to load dashboard data");
         }
 
-        const statsData = await statsRes.json();
-        const tasksData = await tasksRes.json();
-
-        setStats(statsData);
-        setTasks(tasksData);
-      }catch (err) {
-  console.error(err);
-  setError("Something went wrong loading dashboard");
-}
+        setStats(await statsRes.json());
+        setTasks(await tasksRes.json());
+      } catch (err) {
+        console.error(err);
+        setError("Something went wrong loading dashboard");
+      }
     }
 
     loadData();

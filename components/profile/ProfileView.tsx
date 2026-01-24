@@ -1,11 +1,13 @@
-import { Role } from "@prisma/client";
+"use client";
+
+type UserRole = "ADMIN" | "CLIENT";
 
 export default function ProfileView({
   email,
   role,
 }: {
   email: string;
-  role: Role;
+  role: UserRole;
 }) {
   return (
     <div className="max-w-xl rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] p-6">
@@ -26,7 +28,7 @@ export default function ProfileView({
       </div>
 
       {/* Admin-only section */}
-      {role === Role.ADMIN && (
+      {role === "ADMIN" && (
         <div className="mt-6 border-t border-[#2a2a2a] pt-4">
           <h3 className="text-sm font-semibold text-white mb-2">
             Admin Settings

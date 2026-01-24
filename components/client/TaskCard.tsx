@@ -3,12 +3,23 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
+/* ---------------- CLIENT-SAFE TYPES ---------------- */
 
-import { Task } from "@prisma/client";
+type TaskStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED";
+
+type ClientTask = {
+  id: string;
+  title: string;
+  description?: string | null;
+  status: TaskStatus;
+  dueDate?: string | null;
+};
 
 type TaskCardProps = {
-  task: Task;
+  task: ClientTask;
 };
+
+/* ---------------- COMPONENT ---------------- */
 
 export default function TaskCard({ task }: TaskCardProps) {
   return (
@@ -42,9 +53,6 @@ export default function TaskCard({ task }: TaskCardProps) {
             ? new Date(task.dueDate).toDateString()
             : "—"}
         </p>
-
-        {/* 🔮 Future interaction buttons go here */}
-        {/* Delete | Edit | Status change */}
       </CardContent>
     </Card>
   );

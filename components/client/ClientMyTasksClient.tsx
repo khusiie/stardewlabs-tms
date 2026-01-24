@@ -3,12 +3,26 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import TaskCard from "@/components/client/TaskCard";
-import { Task } from "@prisma/client";
 import { useAuthUser } from "@/lib/supabase/useAuthUser";
+
+/* ---------------- CLIENT-SAFE TYPES ---------------- */
+
+type TaskStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED";
+
+type ClientTask = {
+  id: string;
+  title: string;
+  description?: string | null;
+  status: TaskStatus;
+  dueDate?: string | null;
+};
+
+/* ---------------- COMPONENT ---------------- */
 
 export default function ClientMyTasksClient() {
   const { userId, loading } = useAuthUser();
-  const [tasks, setTasks] = useState<Task[]>([]);
+
+  const [tasks, setTasks] = useState<ClientTask[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -23,7 +37,7 @@ export default function ClientMyTasksClient() {
         if (!res.ok) throw new Error("Failed");
         return res.json();
       })
-      .then(setTasks)
+      .then((data: ClientTask[]) => setTasks(data))
       .catch(() => setError("Failed to load tasks"));
   }, [userId]);
 

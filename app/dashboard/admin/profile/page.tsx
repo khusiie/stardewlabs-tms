@@ -1,4 +1,4 @@
-import AdminProfileClient from "@/app/dashboard/admin/profile/AdminProfileClient";
+import AdminProfileClient from "@/components/admin/AdminProfileClient";
 
 export default function AdminProfilePage() {
   // No auth logic here.

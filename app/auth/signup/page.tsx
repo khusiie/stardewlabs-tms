@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signupAction } from "@/app/actions/auth";
 import { supabase } from "@/lib/supabase/client";
 
 export default function SignupPage() {
   const router = useRouter();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -17,14 +17,27 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      // 1️⃣ Create user + profile
-      await signupAction(email, password);
-
-      // 2️⃣ Sign in so session is ready
-      const { error: loginError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      // 1️⃣ Call signup API (creates user + DB record)
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
       });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Signup failed");
+        setLoading(false);
+        return;
+      }
+
+      // 2️⃣ Log in user so session is created
+      const { error: loginError } =
+        await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
 
       if (loginError) {
         setError(loginError.message);
@@ -32,19 +45,14 @@ export default function SignupPage() {
         return;
       }
 
-      // 3️⃣ Redirect (DO NOT stop loading here)
+      // 3️⃣ Redirect
       router.push("/dashboard");
-    }   catch (error: unknown) {
-  if (error instanceof Error) {
-    setError(error.message);
-  } else {
-    setError("Something went wrong");
-  }
-}
+      router.refresh();
+    } catch (err) {
+      setError("Something went wrong");
+      setLoading(false);
+    }
   };
-
-
-
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-black px-4">

@@ -3,14 +3,16 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase/client";
 import { X } from "lucide-react";
 
 export default function AdminSidebar({ onClose }: { onClose?: () => void }) {
   const router = useRouter();
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await fetch("/api/auth/logout", {
+      method: "POST",
+    });
+
     router.push("/");
     router.refresh();
   };
@@ -23,18 +25,7 @@ export default function AdminSidebar({ onClose }: { onClose?: () => void }) {
   ];
 
   return (
-    <aside
-      className="
-        fixed left-0 top-0
-        h-screen w-64
-        bg-[#111]
-        border-r border-[#2a2a2a]
-        p-6
-        flex flex-col
-        z-50
-      "
-    >
-      {/* Mobile Close Button */}
+    <aside className="fixed left-0 top-0 h-screen w-64 bg-[#111] border-r border-[#2a2a2a] p-6 flex flex-col z-50">
       {onClose && (
         <button
           onClick={onClose}
@@ -45,25 +36,15 @@ export default function AdminSidebar({ onClose }: { onClose?: () => void }) {
         </button>
       )}
 
-      {/* Logo */}
       <Link
         href="/dashboard/admin"
         className="mb-10 flex items-center gap-3"
         onClick={onClose}
       >
-        <Image
-          src="/logo.svg"
-          alt="StardewLabs Logo"
-          width={36}
-          height={36}
-          priority
-        />
-        <span className="text-xl font-bold text-white">
-          StardewLabs
-        </span>
+        <Image src="/logo.svg" alt="StardewLabs Logo" width={36} height={36} />
+        <span className="text-xl font-bold text-white">StardewLabs</span>
       </Link>
 
-      {/* Navigation */}
       <nav className="flex-1 space-y-2">
         {navItems.map((item) => (
           <Link
@@ -77,10 +58,8 @@ export default function AdminSidebar({ onClose }: { onClose?: () => void }) {
         ))}
       </nav>
 
-      {/* Divider */}
       <div className="my-4 h-px bg-[#2a2a2a]" />
 
-      {/* Logout */}
       <button
         onClick={handleLogout}
         className="px-4 py-3 text-left text-sm text-red-400 hover:bg-[#1a1a1a] rounded-lg transition"

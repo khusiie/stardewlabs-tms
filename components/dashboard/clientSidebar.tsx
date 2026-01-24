@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase/client";
 import { Menu, X } from "lucide-react";
 
 export default function ClientSidebar() {
@@ -12,7 +11,10 @@ export default function ClientSidebar() {
   const [open, setOpen] = useState(false);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await fetch("/api/auth/logout", {
+      method: "POST",
+    });
+
     setOpen(false);
     router.push("/");
     router.refresh();
@@ -33,13 +35,7 @@ export default function ClientSidebar() {
           <Menu className="h-6 w-6 text-white" />
         </button>
         <div className="flex items-center gap-2">
-          <Image
-            src="/logo.svg"
-            alt="StardewLabs Logo"
-            width={24}
-            height={24}
-            priority
-          />
+          <Image src="/logo.svg" alt="StardewLabs Logo" width={24} height={24} />
           <span className="text-white font-semibold">StardewLabs</span>
         </div>
         <div className="w-6" />
@@ -76,13 +72,7 @@ export default function ClientSidebar() {
           href="/dashboard/client"
           className="hidden md:flex mb-10 items-center gap-3"
         >
-          <Image
-            src="/logo.svg"
-            alt="StardewLabs Logo"
-            width={36}
-            height={36}
-            priority
-          />
+          <Image src="/logo.svg" alt="StardewLabs Logo" width={36} height={36} />
           <span className="text-xl font-bold text-white">
             StardewLabs
           </span>

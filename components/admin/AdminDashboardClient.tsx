@@ -2,23 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-
-import { Prisma, TaskStatus } from "@prisma/client";
 import { useAuthUser } from "@/lib/supabase/useAuthUser";
 
-/* Status badge styles */
-const statusStyles: Record<TaskStatus, string> = {
-  PENDING: "border-yellow-500/30 text-yellow-400 bg-yellow-500/10",
-  IN_PROGRESS: "border-blue-500/30 text-blue-400 bg-blue-500/10",
-  COMPLETED: "border-green-500/30 text-green-400 bg-green-500/10",
-};
+/* ---------------- TYPES (NO PRISMA) ---------------- */
 
-type TaskWithRelations = Prisma.TaskGetPayload<{
-  include: {
-    project: { include: { owner: true } };
-    assignee: true;
-  };
-}>;
+type TaskStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED";
+
+type Task = {
+  id: string;
+  title: string;
+  status: TaskStatus;
+};
 
 type AdminTaskStats = {
   total: number;
@@ -27,11 +21,21 @@ type AdminTaskStats = {
   completed: number;
 };
 
+/* ---------------- UI HELPERS ---------------- */
+
+const statusStyles: Record<TaskStatus, string> = {
+  PENDING: "border-yellow-500/30 text-yellow-400 bg-yellow-500/10",
+  IN_PROGRESS: "border-blue-500/30 text-blue-400 bg-blue-500/10",
+  COMPLETED: "border-green-500/30 text-green-400 bg-green-500/10",
+};
+
+/* ---------------- COMPONENT ---------------- */
+
 export default function AdminDashboardClient() {
   const { userId, loading } = useAuthUser();
 
   const [stats, setStats] = useState<AdminTaskStats | null>(null);
-  const [tasks, setTasks] = useState<TaskWithRelations[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {

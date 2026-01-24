@@ -1,6 +1,7 @@
 // app/dashboard/admin/team/AdminTeamClient.tsx
 "use client";
 
+import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -14,11 +15,32 @@ type Member = {
   };
 };
 
-export default function AdminTeamClient({
-  members,
-}: {
-  members: Member[];
-}) {
+export default function AdminTeamClient() {
+  const [members, setMembers] = useState<Member[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadMembers() {
+      try {
+        const res = await fetch("/api/admin/team");
+        if (!res.ok) throw new Error("Failed to fetch team");
+        const data = await res.json();
+        setMembers(data);
+      } catch (err) {
+        console.error(err);
+        setError("Unable to load team members");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadMembers();
+  }, []);
+
+  if (loading) return <p className="text-gray-400">Loading…</p>;
+  if (error) return <p className="text-red-400">{error}</p>;
+
   return (
     <div className="min-h-screen bg-[#0f0f0f] px-6 py-6 space-y-8">
       {members.length === 0 ? (
@@ -51,12 +73,10 @@ export default function AdminTeamClient({
                   </div>
                 </div>
 
-                <div>
-                  <span className="text-xs text-gray-400">
-                    Tasks:{" "}
-                    <span className="text-white font-medium">
-                      {member._count.tasks}
-                    </span>
+                <div className="text-xs text-gray-400">
+                  Tasks:{" "}
+                  <span className="text-white font-medium">
+                    {member._count.tasks}
                   </span>
                 </div>
 

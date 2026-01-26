@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuthUser } from "@/lib/supabase/useAuthUser";
+import { Eye } from "lucide-react";
+import Link from "next/link";
 
 /* ---------------- TYPES (NO PRISMA) ---------------- */
 
@@ -12,6 +14,17 @@ type Task = {
   id: string;
   title: string;
   status: TaskStatus;
+  dueDate: string | null;
+
+  assignee: {
+    name: string | null;
+    email: string;
+  } | null;
+
+  client: {
+    name: string | null;
+    email: string;
+  };
 };
 
 type AdminTaskStats = {
@@ -76,10 +89,13 @@ export default function AdminDashboardClient() {
 
   return (
     <div className="space-y-10 min-h-screen bg-[#0f0f0f] px-6 py-6">
-      {/* Stats */}
+      {/* ---------------- STATS ---------------- */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {cards.map((item) => (
-          <Card key={item.title} className="bg-[#1a1a1a] border-[#2a2a2a]">
+          <Card
+            key={item.title}
+            className="bg-[#1a1a1a] border-[#2a2a2a]"
+          >
             <CardContent className="p-6">
               <p className="text-sm text-gray-400">{item.title}</p>
               <p className="mt-3 text-3xl font-bold text-white">
@@ -90,9 +106,11 @@ export default function AdminDashboardClient() {
         ))}
       </div>
 
-      {/* Tasks */}
+      {/* ---------------- RECENT TASKS ---------------- */}
       <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-white">Recent Tasks</h2>
+        <h2 className="text-lg font-semibold text-white">
+          Recent Tasks
+        </h2>
 
         {tasks.length === 0 ? (
           <Card className="bg-[#1a1a1a] border-[#2a2a2a]">
@@ -102,15 +120,71 @@ export default function AdminDashboardClient() {
           </Card>
         ) : (
           tasks.map((task) => (
-            <Card key={task.id} className="bg-[#1a1a1a] border-[#2a2a2a]">
-              <CardContent className="p-6 flex justify-between items-center">
-                <p className="text-white">{task.title}</p>
-                <span
-                  className={`text-xs px-3 py-1 rounded-full border ${statusStyles[task.status]}`}
-                >
-                  {task.status.replace("_", " ")}
-                </span>
-              </CardContent>
+            <Card
+              key={task.id}
+              className="bg-[#1a1a1a] border-[#2a2a2a]"
+            >
+          <CardContent className="p-6 flex justify-between items-start gap-6">
+  {/* LEFT */}
+  <div className="space-y-2">
+    {/* Title */}
+    <p className="text-white font-medium">
+      {task.title}
+    </p>
+
+    {/* Client */}
+    <div className="text-xs text-gray-400 flex gap-2">
+      <span className="text-gray-500 w-16">Client</span>
+      <span className="text-gray-300">
+        {task.client?.name ??
+          task.client?.email ??
+          "Unknown"}
+      </span>
+    </div>
+
+   {/* 
+    <div className="text-xs text-gray-400 flex gap-2">
+      <span className="text-gray-500 w-16">Assigned</span>
+      <span className="text-gray-300">
+        {task.assignee?.name ?? "Unassigned"}
+      </span>
+  
+    </div>
+Assigned */}
+    {/* Due Date */}
+    <div className="text-xs text-gray-400 flex gap-2">
+      <span className="text-gray-500 w-16">Due Date</span>
+      <span className="text-gray-300">
+        {task.dueDate
+          ? new Date(task.dueDate).toLocaleDateString()
+          : "—"}
+      </span>
+    </div>
+  </div>
+
+  
+{/* RIGHT */}
+<div className="flex items-center gap-3 self-start">
+  {/* View icon */}
+  <Link
+    href={`/dashboard/admin/tasks/${task.id}`}
+    className="text-gray-400 hover:text-white transition"
+    title="View task"
+  >
+    <Eye className="w-4 h-4" />
+  </Link>
+
+  {/* Status */}
+  <span
+    className={`text-xs px-3 py-1 rounded-full border ${statusStyles[task.status]}`}
+  >
+    {task.status.replace("_", " ")}
+  </span>
+</div>
+
+</CardContent>
+
+
             </Card>
           ))
         )}

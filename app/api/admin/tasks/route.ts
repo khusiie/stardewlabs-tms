@@ -4,10 +4,7 @@ import { getSupabaseServer } from "@/lib/supabase/server";
 
 export async function GET() {
   const supabase = await getSupabaseServer();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -17,24 +14,37 @@ export async function GET() {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  try {
-    const tasks = await prisma.task.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 5,
-      include: {
-        project: {
-          include: { owner: true },
+  const rawTasks = await prisma.task.findMany({
+    orderBy: { createdAt: "desc" },
+    take: 5,
+    include: {
+      project: {
+        include: {
+          owner: true, // 👈 CLIENT
         },
-        assignee: true,
       },
-    });
+      assignee: true,
+    },
+  });
 
-    return NextResponse.json(tasks);
-  } catch (error) {
-    console.error("Admin tasks error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch tasks" },
-      { status: 500 }
-    );
-  }
+  const tasks = rawTasks.map((task) => ({
+    id: task.id,
+    title: task.title,
+    status: task.status,
+    dueDate: task.dueDate,
+
+    assignee: task.assignee
+      ? {
+          name: task.assignee.name,
+          email: task.assignee.email,
+        }
+      : null,
+
+    client: {
+      name: task.project.owner.name,
+      email: task.project.owner.email,
+    },
+  }));
+
+  return NextResponse.json(tasks);
 }

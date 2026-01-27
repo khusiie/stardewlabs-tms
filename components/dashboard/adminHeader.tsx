@@ -28,7 +28,15 @@ export default function AdminHeader() {
     },
   };
 
-  const page = titleMap[pathname];
+  let page = titleMap[pathname];
+
+  // ✅ Handle dynamic manage task route
+  if (pathname.startsWith("/dashboard/admin/tasks/manage/")) {
+    page = {
+      title: "Manage Task",
+      subtitle: "Update assignment, priority, and internal notes",
+    };
+  }
 
   return (
     <header className="mb-8 flex items-center justify-between">

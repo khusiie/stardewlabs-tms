@@ -5,7 +5,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useAuthUser } from "@/lib/supabase/useAuthUser";
-
+          
+import { Eye } from "lucide-react";
 /* ---------------- TYPES (NO PRISMA) ---------------- */
 
 type TaskStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED";
@@ -93,29 +94,53 @@ export default function ClientDashboardClient() {
         </Link>
       </div>
 
-      {/* Tasks */}
-      <div className="mt-8 space-y-4">
-        <h2 className="text-lg font-semibold text-white">My Tasks</h2>
 
-        {tasks.length === 0 ? (
-          <Card className="bg-[#1a1a1a] border-[#2a2a2a]">
-            <CardContent className="p-6 text-center text-gray-400">
-              No tasks created yet.
-            </CardContent>
-          </Card>
-        ) : (
-          tasks.map((task) => (
-            <Card key={task.id} className="bg-[#1a1a1a] border-[#2a2a2a]">
-              <CardContent className="p-5 flex justify-between">
-                <p className="font-medium text-white">{task.title}</p>
-                <span className="text-xs px-3 py-1 rounded-full text-[#FF7A1A]">
-                  {task.status.replace("_", " ")}
-                </span>
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
+<div className="mt-8 space-y-4">
+  <h2 className="text-lg font-semibold text-white">My Tasks</h2>
+
+  {tasks.length === 0 ? (
+    <Card className="bg-[#1a1a1a] border-[#2a2a2a]">
+      <CardContent className="p-6 text-center text-gray-400">
+        No tasks created yet.
+      </CardContent>
+    </Card>
+  ) : (
+    tasks.map((task) => (
+      <Card
+        key={task.id}
+        className="bg-[#1a1a1a] border-[#2a2a2a] hover:border-orange-500/40 transition"
+      >
+        <CardContent className="p-5 flex items-center justify-between gap-4">
+          {/* Left: Title */}
+          <p className="font-medium text-white truncate">
+            {task.title}
+          </p>
+
+          {/* Right: Status + View */}
+          <div className="flex items-center gap-3">
+          
+               {/* View Icon */}
+            <Link
+              href={`/dashboard/client/tasks/${task.id}`}
+              className="text-gray-400 hover:text-orange-400 transition"
+              title="View task"
+            >
+              <Eye className="w-4 h-4" />
+            </Link>
+            
+            <span className="text-xs px-3 py-1 rounded-full border border-orange-500">
+              {task.status.replace("_", " ")}
+            </span>
+
+         
+          </div>
+        </CardContent>
+      </Card>
+    ))
+  )}
+</div>
+
+
     </>
   );
 }

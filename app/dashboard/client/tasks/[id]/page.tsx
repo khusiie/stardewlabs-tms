@@ -11,22 +11,17 @@ type Task = {
   title: string;
   description: string | null;
   note: string | null;
-  links: string[];
+  links?: string[];
   status: TaskStatus;
   priority: string | null;
   dueDate: string | null;
   createdAt: string;
 
-  files: {
+  files?: {
     id: string;
     name: string;
     url: string;
   }[];
-
-  assignee: {
-    name: string | null;
-    email: string;
-  } | null;
 
   project: {
     name: string;
@@ -36,7 +31,7 @@ type Task = {
     };
   };
 
-  comments: {
+  comments?: {
     id: string;
     content: string;
     createdAt: string;
@@ -53,7 +48,7 @@ const statusStyles: Record<TaskStatus, string> = {
   COMPLETED: "bg-green-500/10 text-green-400 border-green-500/30",
 };
 
-export default function AdminTaskViewPage() {
+export default function ClientTaskViewPage() {
   const { id } = useParams<{ id: string }>();
   const [task, setTask] = useState<Task | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +56,7 @@ export default function AdminTaskViewPage() {
   useEffect(() => {
     async function loadTask() {
       try {
-        const res = await fetch(`/api/admin/tasks/${id}`);
+        const res = await fetch(`/api/client/tasks/${id}`);
         if (!res.ok) throw new Error();
         setTask(await res.json());
       } catch {
@@ -75,12 +70,18 @@ export default function AdminTaskViewPage() {
   if (error) return <p className="text-red-400 p-6">{error}</p>;
   if (!task) return <p className="text-gray-400 p-6">Loading task…</p>;
 
+  const links = task.links ?? [];
+  const files = task.files ?? [];
+  const comments = task.comments ?? [];
+
   return (
     <div className="space-y-6 px-6 py-6 bg-[#0f0f0f] min-h-screen">
       {/* HEADER */}
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-2xl font-semibold text-white">{task.title}</h1>
+          <h1 className="text-2xl font-semibold text-white">
+            {task.title}
+          </h1>
           <p className="text-sm text-gray-400">
             Project: {task.project.name}
           </p>
@@ -100,15 +101,6 @@ export default function AdminTaskViewPage() {
             <p className="text-gray-500">Client</p>
             <p className="text-white">
               {task.project.owner.name ?? task.project.owner.email}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-gray-500">Assigned To</p>
-            <p className="text-white">
-              {task.assignee?.name ||
-                task.assignee?.email ||
-                "Unassigned"}
             </p>
           </div>
 
@@ -145,23 +137,23 @@ export default function AdminTaskViewPage() {
         </Card>
       )}
 
-      {/* CLIENT NOTES */}
+      {/* CLIENT NOTES (PRIVATE) */}
       {task.note && (
         <Card className="bg-[#1a1a1a] border-[#2a2a2a]">
           <CardContent className="p-6">
-            <p className="text-gray-400 text-sm mb-2">Client Notes</p>
+            <p className="text-gray-400 text-sm mb-2">Your Notes</p>
             <p className="text-white">{task.note}</p>
           </CardContent>
         </Card>
       )}
 
       {/* REFERENCE LINKS */}
-      {task.links.length > 0 && (
+      {links.length > 0 && (
         <Card className="bg-[#1a1a1a] border-[#2a2a2a]">
           <CardContent className="p-6">
             <p className="text-gray-400 text-sm mb-3">Reference Links</p>
             <ul className="space-y-2 text-sm">
-              {task.links.map((link, i) => (
+              {links.map((link, i) => (
                 <li key={i}>
                   <a
                     href={link}
@@ -179,12 +171,12 @@ export default function AdminTaskViewPage() {
       )}
 
       {/* ATTACHMENTS */}
-      {task.files.length > 0 && (
+      {files.length > 0 && (
         <Card className="bg-[#1a1a1a] border-[#2a2a2a]">
           <CardContent className="p-6">
             <p className="text-gray-400 text-sm mb-3">Attachments</p>
             <div className="space-y-2 text-sm">
-              {task.files.map((file) => (
+              {files.map((file) => (
                 <a
                   key={file.id}
                   href={file.url}
@@ -200,20 +192,26 @@ export default function AdminTaskViewPage() {
         </Card>
       )}
 
-      {/* COMMENTS */}
+      {/* COMMENTS (ADMIN / TEAM RESPONSES) */}
       <Card className="bg-[#1a1a1a] border-[#2a2a2a]">
         <CardContent className="p-6 space-y-4">
-          <h2 className="text-lg font-semibold text-white">Comments</h2>
+          <h2 className="text-lg font-semibold text-white">
+            Comments
+          </h2>
 
-          {task.comments.length === 0 ? (
-            <p className="text-gray-400 text-sm">No comments yet.</p>
+          {comments.length === 0 ? (
+            <p className="text-gray-400 text-sm">
+              No comments yet.
+            </p>
           ) : (
-            task.comments.map((comment) => (
+            comments.map((comment) => (
               <div key={comment.id} className="text-sm">
                 <p className="text-white font-medium">
                   {comment.user.name ?? comment.user.email}
                 </p>
-                <p className="text-gray-400">{comment.content}</p>
+                <p className="text-gray-400">
+                  {comment.content}
+                </p>
               </div>
             ))
           )}

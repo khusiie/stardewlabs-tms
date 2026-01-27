@@ -4,6 +4,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSupabaseServer } from "@/lib/supabase/server";
 
+/* ---------------------------------------
+   GET: Client's tasks
+---------------------------------------- */
 export async function GET() {
   const supabase = await getSupabaseServer();
 
@@ -16,13 +19,24 @@ export async function GET() {
   }
 
   const tasks = await prisma.task.findMany({
-    where: { assigneeId: user.id },
+    where: {
+      project: {
+        ownerId: user.id,
+      },
+    },
     orderBy: { createdAt: "desc" },
+    include: {
+      files: true,
+      comments: true,
+    },
   });
 
   return NextResponse.json(tasks);
 }
 
+/* ---------------------------------------
+   POST: Create task (CLIENT)
+---------------------------------------- */
 export async function POST(req: Request) {
   const supabase = await getSupabaseServer();
 
@@ -34,15 +48,39 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { title, description, dueDate } = await req.json();
+  const {
+    title,
+    description,
+    note,
+    dueDate,
+    priority = "MEDIUM",
+    links = [],
+    files = [], // 👈 NEW
+  } = await req.json();
 
-  if (!title) {
+  if (!title || !title.trim()) {
     return NextResponse.json(
       { error: "Title is required" },
       { status: 400 }
     );
   }
 
+  // clean links
+  const cleanedLinks = Array.isArray(links)
+    ? links.filter((l) => typeof l === "string" && l.startsWith("http"))
+    : [];
+
+  // validate files
+  const cleanedFiles = Array.isArray(files)
+    ? files.filter(
+        (f) =>
+          f &&
+          typeof f.name === "string" &&
+          typeof f.url === "string"
+      )
+    : [];
+
+  // find or create project
   let project = await prisma.project.findFirst({
     where: { ownerId: user.id },
   });
@@ -56,13 +94,28 @@ export async function POST(req: Request) {
     });
   }
 
+  // create task + files in one transaction
   const task = await prisma.task.create({
     data: {
       title,
       description,
+      note,
       dueDate: dueDate ? new Date(dueDate) : null,
+      priority,
+      links: cleanedLinks,
+      status: "PENDING",
       projectId: project.id,
-      assigneeId: user.id,
+      assigneeId: null,
+
+      files: {
+        create: cleanedFiles.map((file) => ({
+          name: file.name,
+          url: file.url,
+        })),
+      },
+    },
+    include: {
+      files: true,
     },
   });
 

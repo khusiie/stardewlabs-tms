@@ -1,14 +1,14 @@
 generator client {
-  provider = "prisma-client-js"
+  provider   = "prisma-client-js"
   engineType = "binary"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+   directUrl = env("DIRECT_URL")
+
 }
-
-
 
 // --------------------
 // Enums
@@ -24,6 +24,12 @@ enum TaskStatus {
   COMPLETED
 }
 
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
 // --------------------
 // User model
 // --------------------
@@ -34,7 +40,6 @@ model User {
   role      Role      @default(CLIENT)
   createdAt DateTime  @default(now())
 
-  // Relations
   projects  Project[] @relation("UserProjects")
   tasks     Task[]    @relation("AssignedTasks")
   comments  Comment[] @relation("UserComments")
@@ -58,20 +63,38 @@ model Project {
 // Task model
 // --------------------
 model Task {
-  id          String      @id @default(uuid())
+  id          String       @id @default(uuid())
   title       String
   description String?
-  status      TaskStatus  @default(PENDING)
-  priority    String?
+  note        String?
+  status      TaskStatus   @default(PENDING)
+  priority    TaskPriority @default(MEDIUM)
   dueDate     DateTime?
+  links       String[]     @default([])
+
   projectId   String
   assigneeId  String?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
 
-  project     Project     @relation(fields: [projectId], references: [id])
-  assignee    User?       @relation("AssignedTasks", fields: [assigneeId], references: [id])
-  comments    Comment[]   @relation("TaskComments")
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  project     Project      @relation(fields: [projectId], references: [id])
+  assignee    User?        @relation("AssignedTasks", fields: [assigneeId], references: [id])
+  comments    Comment[]    @relation("TaskComments")
+  files       TaskFile[]
+}
+
+// --------------------
+// TaskFile model
+// --------------------
+model TaskFile {
+  id        String   @id @default(uuid())
+  taskId   String
+  name      String
+  url       String
+  createdAt DateTime @default(now())
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
 }
 
 // --------------------
@@ -84,6 +107,6 @@ model Comment {
   userId    String
   createdAt DateTime @default(now())
 
-  task      Task     @relation("TaskComments", fields: [taskId], references: [id])
-  user      User     @relation("UserComments", fields: [userId], references: [id])
+  task Task @relation("TaskComments", fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation("UserComments", fields: [userId], references: [id])
 }

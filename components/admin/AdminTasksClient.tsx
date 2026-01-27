@@ -3,13 +3,22 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 type Task = {
   id: string;
   title: string;
   status: "PENDING" | "IN_PROGRESS" | "COMPLETED";
-  assignee?: { name: string | null };
-  project?: { owner?: { email: string } };
+assignee?: {
+  name: string | null;
+  email: string;
+};
+
+  client: {
+    name: string | null;
+    email: string ;
+  };
 };
 
 const statusStyles: Record<string, string> = {
@@ -21,12 +30,24 @@ const statusStyles: Record<string, string> = {
 export default function AdminTasksClient() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
-    fetch("/api/admin/tasks")
-      .then((res) => res.json())
-      .then(setTasks)
-      .finally(() => setLoading(false));
+    const fetchTasks = async () => {
+      setLoading(true);
+      const res = await fetch("/api/admin/tasks", {
+        cache: "no-store", // 🔥 prevents stale data
+      });
+      const data = await res.json();
+      setTasks(data);
+      setLoading(false);
+    };
+
+    fetchTasks();
+
+    // 🔁 refresh when coming back from Manage page
+    window.addEventListener("focus", fetchTasks);
+    return () => window.removeEventListener("focus", fetchTasks);
   }, []);
 
   if (loading) return null;
@@ -49,16 +70,19 @@ export default function AdminTasksClient() {
               <CardContent className="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 {/* Left */}
                 <div className="space-y-1">
-                  <p className="text-white font-medium">
-                    {task.title}
+                  <p className="text-white font-medium">{task.title}</p>
+
+                  <p className="text-xs text-gray-500">
+                    Client:{" "}
+                    {task.client?.name ??
+                      task.client?.email ??
+                      "Unknown"}
                   </p>
 
                   <p className="text-xs text-gray-500">
-                    Client: {task.project?.owner?.email ?? "N/A"}
-                  </p>
+                    Assigned to:{" "}
+                    {task.assignee?.name || task.assignee?.email || "Unassigned"}
 
-                  <p className="text-xs text-gray-500">
-                    Assigned to: {task.assignee?.name ?? "Unassigned"}
                   </p>
                 </div>
 
@@ -70,12 +94,14 @@ export default function AdminTasksClient() {
                     {task.status.replace("_", " ")}
                   </span>
 
-                  <Button
-                    size="sm"
-                    className="bg-gradient-to-r from-[#FF0A0A] to-[#FF7A1A] text-white"
-                  >
-                    Manage
-                  </Button>
+                  <Link href={`/dashboard/admin/tasks/manage/${task.id}`}>
+                    <Button
+                      size="sm"
+                      className="bg-gradient-to-r from-[#FF0A0A] to-[#FF7A1A] text-white"
+                    >
+                      Manage
+                    </Button>
+                  </Link>
                 </div>
               </CardContent>
             </Card>

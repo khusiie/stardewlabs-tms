@@ -134,8 +134,8 @@ export default function AdminDashboardClient() {
 
     {/* Client */}
     <div className="text-xs text-gray-400 flex gap-2">
-      <span className="text-gray-500 w-16">Client</span>
-      <span className="text-gray-300">
+      <span className="text-gray-500 w-16">Client:</span>
+      <span className="text-gray-400">
         {task.client?.name ??
           task.client?.email ??
           "Unknown"}
@@ -153,8 +153,8 @@ export default function AdminDashboardClient() {
 Assigned */}
     {/* Due Date */}
     <div className="text-xs text-gray-400 flex gap-2">
-      <span className="text-gray-500 w-16">Due Date</span>
-      <span className="text-gray-300">
+      <span className="text-gray-500 w-16">Due Date :</span>
+      <span className="text-gray-400">
         {task.dueDate
           ? new Date(task.dueDate).toLocaleDateString()
           : "—"}

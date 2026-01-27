@@ -19,7 +19,7 @@ export default function AdminSidebar({ onClose }: { onClose?: () => void }) {
 
   const navItems = [
     { name: "Dashboard", href: "/dashboard/admin" },
-    { name: "All Tasks", href: "/dashboard/admin/tasks" },
+    { name: "Manage All Tasks", href: "/dashboard/admin/tasks" },
     { name: "Team Members", href: "/dashboard/admin/team" },
     { name: "Settings", href: "/dashboard/admin/settings" },
   ];

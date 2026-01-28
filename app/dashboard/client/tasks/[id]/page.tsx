@@ -61,6 +61,10 @@ export default function ClientTaskViewPage() {
   const [error, setError] = useState<string | null>(null);
   const [updating, setUpdating] = useState(false);
 
+  // 💬 comment state
+  const [newComment, setNewComment] = useState("");
+  const [sendingComment, setSendingComment] = useState(false);
+
   /* ---------------- LOAD TASK ---------------- */
 
   useEffect(() => {
@@ -93,9 +97,7 @@ export default function ClientTaskViewPage() {
         body: JSON.stringify({ status: newStatus }),
       });
 
-      if (!res.ok) {
-        throw new Error();
-      }
+      if (!res.ok) throw new Error();
 
       // Optimistic UI update
       setTask((prev) =>
@@ -105,6 +107,42 @@ export default function ClientTaskViewPage() {
       alert("Failed to update task status");
     } finally {
       setUpdating(false);
+    }
+  }
+
+  /* ---------------- ADD COMMENT ---------------- */
+
+  async function addComment() {
+    if (!newComment.trim() || !task) return;
+
+    try {
+      setSendingComment(true);
+
+      const res = await fetch(`/api/tasks/${task.id}/comments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: newComment }),
+      });
+
+      if (!res.ok) throw new Error();
+
+      const createdComment = await res.json();
+
+      // ✅ instant UI update
+      setTask((prev) =>
+        prev
+          ? {
+              ...prev,
+              comments: [...(prev.comments ?? []), createdComment],
+            }
+          : prev
+      );
+
+      setNewComment("");
+    } catch {
+      alert("Failed to add comment");
+    } finally {
+      setSendingComment(false);
     }
   }
 
@@ -190,11 +228,13 @@ export default function ClientTaskViewPage() {
         </Card>
       )}
 
-      {/* NOTES */}
+      {/* NOTE (ONE-TIME) */}
       {task.note && (
         <Card className="bg-[#1a1a1a] border-[#2a2a2a]">
           <CardContent className="p-6">
-            <p className="text-gray-400 text-sm mb-2">Your Notes</p>
+            <p className="text-gray-400 text-sm mb-2">
+              Task Brief (from creator)
+            </p>
             <p className="text-white">{task.note}</p>
           </CardContent>
         </Card>
@@ -253,19 +293,50 @@ export default function ClientTaskViewPage() {
           </h2>
 
           {comments.length === 0 ? (
-            <p className="text-gray-400 text-sm">No comments yet.</p>
+            <p className="text-gray-400 text-sm">
+              No comments yet.
+            </p>
           ) : (
-            comments.map((comment) => (
-              <div key={comment.id} className="text-sm">
-                <p className="text-white font-medium">
-                  {comment.user.name ?? comment.user.email}
-                </p>
-                <p className="text-gray-400">
-                  {comment.content}
-                </p>
-              </div>
-            ))
+            <div className="space-y-3">
+              {comments.map((comment) => (
+                <div
+                  key={comment.id}
+                  className="bg-[#121212] rounded-md p-3"
+                >
+                  <div className="flex justify-between items-center">
+                    <p className="text-sm font-medium text-white">
+                      {comment.user.name ?? comment.user.email}
+                    </p>
+                    <span className="text-xs text-gray-500">
+                      {new Date(comment.createdAt).toLocaleString()}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-300 mt-1">
+                    {comment.content}
+                  </p>
+                </div>
+              ))}
+            </div>
           )}
+
+          {/* ADD COMMENT */}
+          <div className="pt-4 border-t border-[#2a2a2a] space-y-2">
+            <textarea
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="Add an update or reply to admin…"
+              rows={3}
+              className="w-full bg-[#0f0f0f] border border-[#2a2a2a] rounded-md p-3 text-sm text-white resize-none focus:outline-none focus:ring-1 focus:ring-orange-500"
+            />
+
+            <button
+              onClick={addComment}
+              disabled={sendingComment}
+              className="px-4 py-2 rounded-md bg-orange-500 text-black text-sm hover:bg-orange-400 disabled:opacity-50"
+            >
+              {sendingComment ? "Sending..." : "Send Comment"}
+            </button>
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -96,7 +96,7 @@ export default function ManageTaskPage() {
 
     setCommentLoading(true);
 
-    const res = await fetch(`/api/admin/tasks/${id}/comments`, {
+    const res = await fetch(`/api/tasks/${id}/comments`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ content: newComment }),
@@ -272,7 +272,7 @@ export default function ManageTaskPage() {
         {/* COMMENTS */}
         <Card className="bg-[#1a1a1a] border-[#2a2a2a]">
           <CardContent className="p-6 space-y-4">
-            <h3 className="text-white font-medium">Internal Notes</h3>
+            <h3 className="text-white font-medium">Comments</h3>
 
             {comments.map((c) => (
               <div

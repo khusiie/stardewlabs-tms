@@ -57,8 +57,9 @@ export default function AdminDashboardClient() {
     async function loadData() {
       try {
         const [statsRes, tasksRes] = await Promise.all([
-          fetch("/api/admin/tasks/stats"),
-          fetch("/api/admin/tasks"),
+         fetch("/api/admin/tasks/stats"),
+        fetch("/api/admin/tasks?type=recent")
+
         ]);
 
         if (!statsRes.ok || !tasksRes.ok) {
@@ -142,15 +143,16 @@ export default function AdminDashboardClient() {
       </span>
     </div>
 
-   {/* 
+   
     <div className="text-xs text-gray-400 flex gap-2">
       <span className="text-gray-500 w-16">Assigned</span>
       <span className="text-gray-300">
-        {task.assignee?.name ?? "Unassigned"}
+       {task.assignee?.name || task.assignee?.email || "Unassigned"}
       </span>
   
     </div>
-Assigned */}
+
+
     {/* Due Date */}
     <div className="text-xs text-gray-400 flex gap-2">
       <span className="text-gray-500 w-16">Due Date :</span>

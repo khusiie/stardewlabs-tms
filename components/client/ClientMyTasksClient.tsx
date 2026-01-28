@@ -28,7 +28,8 @@ export default function ClientMyTasksClient() {
   useEffect(() => {
     if (!userId) return;
 
-    fetch("/api/client/tasks", {
+    fetch("/api/client/tasks", {               
+
       headers: {
         "x-user-id": userId,
       },

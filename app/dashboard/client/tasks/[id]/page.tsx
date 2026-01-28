@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 
+/* ---------------- TYPES ---------------- */
+
 type TaskStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED";
 
 type Task = {
@@ -42,16 +44,24 @@ type Task = {
   }[];
 };
 
+/* ---------------- UI HELPERS ---------------- */
+
 const statusStyles: Record<TaskStatus, string> = {
   PENDING: "bg-yellow-500/10 text-yellow-400 border-yellow-500/30",
   IN_PROGRESS: "bg-blue-500/10 text-blue-400 border-blue-500/30",
   COMPLETED: "bg-green-500/10 text-green-400 border-green-500/30",
 };
 
+/* ---------------- COMPONENT ---------------- */
+
 export default function ClientTaskViewPage() {
   const { id } = useParams<{ id: string }>();
+
   const [task, setTask] = useState<Task | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [updating, setUpdating] = useState(false);
+
+  /* ---------------- LOAD TASK ---------------- */
 
   useEffect(() => {
     async function loadTask() {
@@ -67,12 +77,47 @@ export default function ClientTaskViewPage() {
     loadTask();
   }, [id]);
 
+  /* ---------------- UPDATE STATUS ---------------- */
+
+  async function updateStatus(newStatus: TaskStatus) {
+    if (!task) return;
+
+    try {
+      setUpdating(true);
+
+      const res = await fetch(`/api/tasks/${task.id}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (!res.ok) {
+        throw new Error();
+      }
+
+      // Optimistic UI update
+      setTask((prev) =>
+        prev ? { ...prev, status: newStatus } : prev
+      );
+    } catch {
+      alert("Failed to update task status");
+    } finally {
+      setUpdating(false);
+    }
+  }
+
+  /* ---------------- STATES ---------------- */
+
   if (error) return <p className="text-red-400 p-6">{error}</p>;
   if (!task) return <p className="text-gray-400 p-6">Loading task…</p>;
 
   const links = task.links ?? [];
   const files = task.files ?? [];
   const comments = task.comments ?? [];
+
+  /* ---------------- UI ---------------- */
 
   return (
     <div className="space-y-6 px-6 py-6 bg-[#0f0f0f] min-h-screen">
@@ -87,11 +132,19 @@ export default function ClientTaskViewPage() {
           </p>
         </div>
 
-        <span
-          className={`px-4 py-1 text-sm rounded-full border ${statusStyles[task.status]}`}
+        {/* STATUS UPDATE */}
+        <select
+          value={task.status}
+          disabled={updating}
+          onChange={(e) =>
+            updateStatus(e.target.value as TaskStatus)
+          }
+          className={`px-4 py-1 text-sm rounded-full border bg-[#0f0f0f] ${statusStyles[task.status]}`}
         >
-          {task.status.replace("_", " ")}
-        </span>
+          <option value="PENDING">Pending</option>
+          <option value="IN_PROGRESS">In Progress</option>
+          <option value="COMPLETED">Completed</option>
+        </select>
       </div>
 
       {/* DETAILS */}
@@ -137,7 +190,7 @@ export default function ClientTaskViewPage() {
         </Card>
       )}
 
-      {/* CLIENT NOTES (PRIVATE) */}
+      {/* NOTES */}
       {task.note && (
         <Card className="bg-[#1a1a1a] border-[#2a2a2a]">
           <CardContent className="p-6">
@@ -147,7 +200,7 @@ export default function ClientTaskViewPage() {
         </Card>
       )}
 
-      {/* REFERENCE LINKS */}
+      {/* LINKS */}
       {links.length > 0 && (
         <Card className="bg-[#1a1a1a] border-[#2a2a2a]">
           <CardContent className="p-6">
@@ -170,7 +223,7 @@ export default function ClientTaskViewPage() {
         </Card>
       )}
 
-      {/* ATTACHMENTS */}
+      {/* FILES */}
       {files.length > 0 && (
         <Card className="bg-[#1a1a1a] border-[#2a2a2a]">
           <CardContent className="p-6">
@@ -192,7 +245,7 @@ export default function ClientTaskViewPage() {
         </Card>
       )}
 
-      {/* COMMENTS (ADMIN / TEAM RESPONSES) */}
+      {/* COMMENTS */}
       <Card className="bg-[#1a1a1a] border-[#2a2a2a]">
         <CardContent className="p-6 space-y-4">
           <h2 className="text-lg font-semibold text-white">
@@ -200,9 +253,7 @@ export default function ClientTaskViewPage() {
           </h2>
 
           {comments.length === 0 ? (
-            <p className="text-gray-400 text-sm">
-              No comments yet.
-            </p>
+            <p className="text-gray-400 text-sm">No comments yet.</p>
           ) : (
             comments.map((comment) => (
               <div key={comment.id} className="text-sm">

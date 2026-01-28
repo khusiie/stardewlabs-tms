@@ -24,7 +24,9 @@ export default function ClientSidebar() {
     { name: "Dashboard", href: "/dashboard/client" },
     { name: "My Tasks", href: "/dashboard/client/tasks/my-task" },
     { name: "Create Task", href: "/dashboard/client/tasks/create-task" },
+    { name: "Assigned Task", href: "/dashboard/client/assigned" },
     { name: "Settings", href: "/dashboard/client/settings" },
+  
   ];
 
   return (

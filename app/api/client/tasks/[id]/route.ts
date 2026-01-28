@@ -1,4 +1,3 @@
-
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -8,56 +7,38 @@ import { getSupabaseServer } from "@/lib/supabase/server";
 
 export async function GET(
   _req: Request,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> } // params is a Promise here — await it
 ) {
-  // ✅ FIX: await params
+  // unwrap params
   const { id } = await context.params;
 
+  if (!id) {
+    return NextResponse.json({ error: "Missing task id" }, { status: 400 });
+  }
+
   const supabase = await getSupabaseServer();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // debug help (remove or comment out in production)
+  // console.log("GET /api/client/tasks/[id] - id:", id, "user:", user.email, "app_meta:", user.app_metadata);
+
+  // load task with related data
   const task = await prisma.task.findUnique({
-    where: { id }, // ✅ id is now defined
+    where: { id },
     include: {
       project: {
         include: {
-          owner: {
-            select: {
-              name: true,
-              email: true,
-            },
-          },
+          owner: { select: { id: true, name: true, email: true } },
         },
       },
-      assignee: {
-        select: {
-          name: true,
-          email: true,
-        },
-      },
-      files: {
-        select: {
-          id: true,
-          name: true,
-          url: true,
-        },
-        orderBy: { createdAt: "asc" },
-      },
+      assignee: { select: { id: true, name: true, email: true } },
+      files: { select: { id: true, name: true, url: true }, orderBy: { createdAt: "asc" } },
       comments: {
-        include: {
-          user: {
-            select: {
-              name: true,
-              email: true,
-            },
-          },
-        },
+        include: { user: { select: { id: true, name: true, email: true } } },
         orderBy: { createdAt: "asc" },
       },
     },
@@ -67,8 +48,11 @@ export async function GET(
     return NextResponse.json({ error: "Task not found" }, { status: 404 });
   }
 
-  // 🔐 Client can only view their own task
-  if (task.project.owner.email !== user.email) {
+  const isOwner = task.project.owner.email === user.email;
+  const isAssignee = task.assignee?.email === user.email;
+  const isAdmin = user.app_metadata?.role === "ADMIN";
+
+  if (!isOwner && !isAssignee && !isAdmin) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

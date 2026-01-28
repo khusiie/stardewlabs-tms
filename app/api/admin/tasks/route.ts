@@ -1,13 +1,14 @@
-
 export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSupabaseServer } from "@/lib/supabase/server";
 
-export async function GET() {
+export async function GET(req: Request) {
   const supabase = await getSupabaseServer();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -17,14 +18,15 @@ export async function GET() {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  const { searchParams } = new URL(req.url);
+  const type = searchParams.get("type"); // 👈 recent | null
+
   const rawTasks = await prisma.task.findMany({
     orderBy: { createdAt: "desc" },
-    take: 5,
+    take: type === "recent" ? 5 : undefined, // 👈 magic line
     include: {
       project: {
-        include: {
-          owner: true, // 👈 CLIENT
-        },
+        include: { owner: true },
       },
       assignee: true,
     },
@@ -35,14 +37,12 @@ export async function GET() {
     title: task.title,
     status: task.status,
     dueDate: task.dueDate,
-
     assignee: task.assignee
       ? {
           name: task.assignee.name,
           email: task.assignee.email,
         }
       : null,
-
     client: {
       name: task.project.owner.name,
       email: task.project.owner.email,

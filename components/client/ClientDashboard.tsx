@@ -40,7 +40,7 @@ export default function ClientDashboardClient() {
       try {
         const [statsRes, tasksRes] = await Promise.all([
           fetch("/api/client/tasks/stats"),
-          fetch("/api/client/tasks"),
+         fetch("/api/client/tasks"),
         ]);
 
         if (!statsRes.ok || !tasksRes.ok) {

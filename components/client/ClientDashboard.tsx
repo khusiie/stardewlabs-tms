@@ -5,9 +5,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useAuthUser } from "@/lib/supabase/useAuthUser";
-import { Eye } from "lucide-react";
+import { useRouter } from "next/navigation";
 
-/* ---------------- TYPES (NO PRISMA) ---------------- */
+/* ---------------- TYPES ---------------- */
 
 type TaskStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED";
 
@@ -26,7 +26,7 @@ type ClientTaskStats = {
   completed: number;
 };
 
-/* ---------------- UI HELPERS (SAME AS ADMIN) ---------------- */
+/* ---------------- UI HELPERS ---------------- */
 
 const statusStyles: Record<TaskStatus, string> = {
   PENDING: "border-yellow-500/30 text-yellow-400 bg-yellow-500/10",
@@ -38,6 +38,7 @@ const statusStyles: Record<TaskStatus, string> = {
 
 export default function ClientDashboardClient() {
   const { userId, loading } = useAuthUser();
+  const router = useRouter();
 
   const [stats, setStats] = useState<ClientTaskStats | null>(null);
   const [tasks, setTasks] = useState<ClientTask[]>([]);
@@ -109,9 +110,7 @@ export default function ClientDashboardClient() {
 
       {/* ---------------- TASK LIST ---------------- */}
       <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-white">
-          My Tasks
-        </h2>
+        <h2 className="text-lg font-semibold text-white">My Tasks</h2>
 
         {tasks.length === 0 ? (
           <Card className="bg-[#1a1a1a] border-[#2a2a2a]">
@@ -123,7 +122,16 @@ export default function ClientDashboardClient() {
           tasks.map((task) => (
             <Card
               key={task.id}
-              className="bg-[#1a1a1a] border-[#2a2a2a]"
+              onClick={() =>
+                router.push(`/dashboard/client/tasks/${task.id}`)
+              }
+              className="
+                cursor-pointer
+                bg-[#1a1a1a]
+                border-[#2a2a2a]
+                hover:border-[#FF7A1A]/40
+                transition
+              "
             >
               <CardContent className="p-6 flex justify-between items-start gap-6">
                 {/* LEFT */}
@@ -132,12 +140,10 @@ export default function ClientDashboardClient() {
                     {task.title}
                   </p>
 
-         
-                  {/* Due Date */}
                   <div className="text-xs text-gray-400 flex gap-2">
-      
+          
                       Due Date:
-        
+                
                     <span>
                       {task.dueDate
                         ? new Date(task.dueDate).toLocaleDateString()
@@ -147,21 +153,11 @@ export default function ClientDashboardClient() {
                 </div>
 
                 {/* RIGHT */}
-                <div className="flex items-center gap-3 self-start">
-                  <Link
-                    href={`/dashboard/client/tasks/${task.id}`}
-                    className="text-gray-400 hover:text-white transition"
-                    title="View task"
-                  >
-                    <Eye className="w-4 h-4" />
-                  </Link>
-
-                  <span
-                    className={`text-xs px-3 py-1 rounded-full border ${statusStyles[task.status]}`}
-                  >
-                    {task.status.replace("_", " ")}
-                  </span>
-                </div>
+                <span
+                  className={`text-xs px-3 py-1 rounded-full border ${statusStyles[task.status]}`}
+                >
+                  {task.status.replace("_", " ")}
+                </span>
               </CardContent>
             </Card>
           ))

@@ -25,7 +25,7 @@ export default function ClientMyTasksClient() {
   const [tasks, setTasks] = useState<ClientTask[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  // 🔍 Status filter (lightweight)
+  // 🔍 Status filter
   const [statusFilter, setStatusFilter] = useState<
     "ALL" | TaskStatus
   >("ALL");
@@ -33,12 +33,15 @@ export default function ClientMyTasksClient() {
   useEffect(() => {
     if (!userId) return;
 
-    fetch("/api/client/tasks")
+    fetch("/api/client/tasks", { cache: "no-store" })
       .then((res) => {
         if (!res.ok) throw new Error("Failed");
         return res.json();
       })
-      .then((data: ClientTask[]) => setTasks(data))
+      .then((data: ClientTask[]) =>
+        // 🛡️ Safety: remove null / undefined tasks
+        setTasks(data.filter(Boolean))
+      )
       .catch(() => setError("Failed to load tasks"));
   }, [userId]);
 
@@ -68,6 +71,7 @@ export default function ClientMyTasksClient() {
         </select>
       </div>
 
+      {/* 🗂 TASK LIST */}
       {visibleTasks.length === 0 ? (
         <Card className="bg-[#1a1a1a] border-[#2a2a2a]">
           <CardContent className="p-6 text-center text-gray-400">
@@ -76,9 +80,11 @@ export default function ClientMyTasksClient() {
         </Card>
       ) : (
         <div className="space-y-4">
-          {visibleTasks.map((task) => (
-            <TaskCard key={task.id} task={task} />
-          ))}
+          {visibleTasks.map((task) =>
+            task ? (
+              <TaskCard key={task.id} task={task} />
+            ) : null
+          )}
         </div>
       )}
     </div>

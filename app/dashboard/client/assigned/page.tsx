@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
-import { Eye } from "lucide-react";
 import { useAuthUser } from "@/lib/supabase/useAuthUser";
+import { useRouter } from "next/navigation";
 
 /* ---------------- TYPES ---------------- */
 
@@ -15,10 +14,10 @@ type AssignedTask = {
   title: string;
   status: TaskStatus;
   dueDate?: string | null;
-  createdAt?: string; // optional (safe if backend adds later)
+  createdAt?: string;
 };
 
-/* ---------------- UI HELPERS (MATCH ADMIN) ---------------- */
+/* ---------------- UI HELPERS ---------------- */
 
 const statusStyles: Record<TaskStatus, string> = {
   PENDING: "border-yellow-500/30 text-yellow-400 bg-yellow-500/10",
@@ -30,6 +29,7 @@ const statusStyles: Record<TaskStatus, string> = {
 
 export default function AssignedTasksPage() {
   const { userId, loading } = useAuthUser();
+  const router = useRouter();
 
   const [tasks, setTasks] = useState<AssignedTask[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -68,11 +68,10 @@ export default function AssignedTasksPage() {
   /* ---------------- FILTER + SORT ---------------- */
 
   const visibleTasks = [...tasks]
-    .filter((task) => {
-      return (
+    .filter(
+      (task) =>
         statusFilter === "ALL" || task.status === statusFilter
-      );
-    })
+    )
     .sort((a, b) => {
       if (sortBy === "DUE_DATE_ASC") {
         if (!a.dueDate) return 1;
@@ -83,7 +82,6 @@ export default function AssignedTasksPage() {
         );
       }
 
-      // default → newest first
       if (!a.createdAt || !b.createdAt) return 0;
 
       return (
@@ -100,7 +98,6 @@ export default function AssignedTasksPage() {
 
       {/* 🔍 FILTER CONTROLS */}
       <div className="flex flex-wrap gap-3">
-        {/* Status */}
         <select
           value={statusFilter}
           onChange={(e) =>
@@ -114,7 +111,6 @@ export default function AssignedTasksPage() {
           <option value="COMPLETED">Completed</option>
         </select>
 
-        {/* Sort */}
         <select
           value={sortBy}
           onChange={(e) =>
@@ -141,7 +137,18 @@ export default function AssignedTasksPage() {
           {visibleTasks.map((task) => (
             <Card
               key={task.id}
-              className="bg-[#1a1a1a] border-[#2a2a2a] hover:border-[#FF7A1A]/40 transition"
+              onClick={() =>
+                router.push(
+                  `/dashboard/client/tasks/${task.id}`
+                )
+              }
+              className="
+                cursor-pointer
+                bg-[#1a1a1a]
+                border-[#2a2a2a]
+                hover:border-[#FF7A1A]/40
+                transition
+              "
             >
               <CardContent className="p-6 flex justify-between items-start gap-6">
                 {/* LEFT */}
@@ -166,21 +173,11 @@ export default function AssignedTasksPage() {
                 </div>
 
                 {/* RIGHT */}
-                <div className="flex items-center gap-3 self-start">
-                  <Link
-                    href={`/dashboard/client/tasks/${task.id}`}
-                    className="text-gray-400 hover:text-white transition"
-                    title="View task"
-                  >
-                    <Eye className="w-4 h-4" />
-                  </Link>
-
-                  <span
-                    className={`text-xs px-3 py-1 rounded-full border ${statusStyles[task.status]}`}
-                  >
-                    {task.status.replace("_", " ")}
-                  </span>
-                </div>
+                <span
+                  className={`text-xs px-3 py-1 rounded-full border ${statusStyles[task.status]}`}
+                >
+                  {task.status.replace("_", " ")}
+                </span>
               </CardContent>
             </Card>
           ))}

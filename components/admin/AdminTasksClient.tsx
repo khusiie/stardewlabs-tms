@@ -62,7 +62,6 @@ export default function AdminTasksClient() {
 
     fetchTasks();
 
-    // 🔁 Refresh when returning from Manage page
     window.addEventListener("focus", fetchTasks);
     return () => window.removeEventListener("focus", fetchTasks);
   }, []);
@@ -92,7 +91,6 @@ export default function AdminTasksClient() {
         );
       }
 
-      // default → newest first
       return (
         new Date(b.createdAt).getTime() -
         new Date(a.createdAt).getTime()
@@ -101,10 +99,8 @@ export default function AdminTasksClient() {
 
   return (
     <div className="min-h-screen bg-[#0f0f0f] px-6 py-6 space-y-6">
-
       {/* 🔍 FILTER CONTROLS */}
       <div className="flex flex-wrap gap-3">
-        {/* Status */}
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as any)}
@@ -116,7 +112,6 @@ export default function AdminTasksClient() {
           <option value="COMPLETED">Completed</option>
         </select>
 
-        {/* Assignment */}
         <select
           value={assignmentFilter}
           onChange={(e) => setAssignmentFilter(e.target.value as any)}
@@ -127,7 +122,6 @@ export default function AdminTasksClient() {
           <option value="UNASSIGNED">Unassigned</option>
         </select>
 
-        {/* Sort */}
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value as any)}
@@ -150,12 +144,17 @@ export default function AdminTasksClient() {
           {filteredTasks.map((task) => (
             <Card
               key={task.id}
-              className="bg-[#1a1a1a] border-[#2a2a2a] hover:border-[#FF7A1A]/40 transition"
+              onClick={() =>
+                router.push(`/dashboard/admin/tasks/${task.id}`)
+              }
+              className="cursor-pointer bg-[#1a1a1a] border-[#2a2a2a] hover:border-[#FF7A1A]/40 transition"
             >
               <CardContent className="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 {/* Left */}
                 <div className="space-y-1">
-                  <p className="text-white font-medium">{task.title}</p>
+                  <p className="text-white font-medium">
+                    {task.title}
+                  </p>
 
                   <p className="text-xs text-gray-500">
                     Client:{" "}
@@ -180,7 +179,10 @@ export default function AdminTasksClient() {
                     {task.status.replace("_", " ")}
                   </span>
 
-                  <Link href={`/dashboard/admin/tasks/manage/${task.id}`}>
+                  <Link
+                    href={`/dashboard/admin/tasks/manage/${task.id}`}
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <Button
                       size="sm"
                       className="bg-gradient-to-r from-[#FF0A0A] to-[#FF7A1A] text-white"

@@ -3,10 +3,9 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuthUser } from "@/lib/supabase/useAuthUser";
-import { Eye } from "lucide-react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
-/* ---------------- TYPES (NO PRISMA) ---------------- */
+/* ---------------- TYPES ---------------- */
 
 type TaskStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED";
 
@@ -46,6 +45,7 @@ const statusStyles: Record<TaskStatus, string> = {
 
 export default function AdminDashboardClient() {
   const { userId, loading } = useAuthUser();
+  const router = useRouter();
 
   const [stats, setStats] = useState<AdminTaskStats | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -57,9 +57,8 @@ export default function AdminDashboardClient() {
     async function loadData() {
       try {
         const [statsRes, tasksRes] = await Promise.all([
-         fetch("/api/admin/tasks/stats"),
-        fetch("/api/admin/tasks?type=recent")
-
+          fetch("/api/admin/tasks/stats"),
+          fetch("/api/admin/tasks?type=recent"),
         ]);
 
         if (!statsRes.ok || !tasksRes.ok) {
@@ -123,70 +122,63 @@ export default function AdminDashboardClient() {
           tasks.map((task) => (
             <Card
               key={task.id}
-              className="bg-[#1a1a1a] border-[#2a2a2a]"
+              onClick={() =>
+                router.push(`/dashboard/admin/tasks/${task.id}`)
+              }
+              className="cursor-pointer bg-[#1a1a1a] border-[#2a2a2a] hover:border-[#FF7A1A]/40 transition"
             >
-          <CardContent className="p-6 flex justify-between items-start gap-6">
-  {/* LEFT */}
-  <div className="space-y-2">
-    {/* Title */}
-    <p className="text-white font-medium">
-      {task.title}
-    </p>
+              <CardContent className="p-6 flex justify-between items-start gap-6">
+                {/* LEFT */}
+                <div className="space-y-2">
+                  <p className="text-white font-medium">
+                    {task.title}
+                  </p>
 
-    {/* Client */}
-    <div className="text-xs text-gray-400 flex gap-2">
-      <span className="text-gray-500 w-16">Client:</span>
-      <span className="text-gray-400">
-        {task.client?.name ??
-          task.client?.email ??
-          "Unknown"}
-      </span>
-    </div>
+                  <div className="text-xs text-gray-400 flex gap-2">
+                    <span className="text-gray-500 w-16">
+                      Client:
+                    </span>
+                    <span>
+                      {task.client?.name ??
+                        task.client?.email ??
+                        "Unknown"}
+                    </span>
+                  </div>
 
-   
-    <div className="text-xs text-gray-400 flex gap-2">
-      <span className="text-gray-500 w-16">Assigned</span>
-      <span className="text-gray-300">
-       {task.assignee?.name || task.assignee?.email || "Unassigned"}
-      </span>
-  
-    </div>
+                  <div className="text-xs text-gray-400 flex gap-2">
+                    <span className="text-gray-500 w-16">
+                      Assigned:
+                    </span>
+                    <span>
+                      {task.assignee?.name ||
+                        task.assignee?.email ||
+                        "Unassigned"}
+                    </span>
+                  </div>
 
+                  <div className="text-xs text-gray-400 flex gap-2">
+                    <span className="text-gray-500 w-16">
+                      Due Date:
+                    </span>
+                    <span>
+                      {task.dueDate
+                        ? new Date(
+                            task.dueDate
+                          ).toLocaleDateString()
+                        : "—"}
+                    </span>
+                  </div>
+                </div>
 
-    {/* Due Date */}
-    <div className="text-xs text-gray-400 flex gap-2">
-      <span className="text-gray-500 w-16">Due Date :</span>
-      <span className="text-gray-400">
-        {task.dueDate
-          ? new Date(task.dueDate).toLocaleDateString()
-          : "—"}
-      </span>
-    </div>
-  </div>
-
-  
-{/* RIGHT */}
-<div className="flex items-center gap-3 self-start">
-  {/* View icon */}
-  <Link
-    href={`/dashboard/admin/tasks/${task.id}`}
-    className="text-gray-400 hover:text-white transition"
-    title="View task"
-  >
-    <Eye className="w-4 h-4" />
-  </Link>
-
-  {/* Status */}
-  <span
-    className={`text-xs px-3 py-1 rounded-full border ${statusStyles[task.status]}`}
-  >
-    {task.status.replace("_", " ")}
-  </span>
-</div>
-
-</CardContent>
-
-
+                {/* RIGHT */}
+                <div className="self-start">
+                  <span
+                    className={`text-xs px-3 py-1 rounded-full border ${statusStyles[task.status]}`}
+                  >
+                    {task.status.replace("_", " ")}
+                  </span>
+                </div>
+              </CardContent>
             </Card>
           ))
         )}

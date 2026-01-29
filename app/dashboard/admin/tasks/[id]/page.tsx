@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -93,7 +94,7 @@ export default function AdminTaskViewPage() {
     loadTask();
   }, [id]);
 
-  /* ---------------- ADD COMMENT (TWO WAY) ---------------- */
+  /* ---------------- ADD COMMENT ---------------- */
 
   async function handleAddComment() {
     if (!newComment.trim()) return;
@@ -107,18 +108,14 @@ export default function AdminTaskViewPage() {
         body: JSON.stringify({ content: newComment }),
       });
 
-      if (!res.ok) {
-        throw new Error("Failed to add comment");
-      }
+      if (!res.ok) throw new Error();
 
       const created: Comment = await res.json();
 
-      // ✅ Optimistic UI update
       setComments((prev) => [...prev, created]);
       setNewComment("");
-    } catch (err) {
+    } catch {
       alert("Unable to send comment");
-      console.error(err);
     } finally {
       setCommentLoading(false);
     }
@@ -134,7 +131,7 @@ export default function AdminTaskViewPage() {
   return (
     <div className="space-y-6 px-6 py-6 bg-[#0f0f0f] min-h-screen">
       {/* HEADER */}
-      <div className="flex justify-between items-start">
+      <div className="flex justify-between items-start gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-white">
             {task.title}
@@ -144,11 +141,22 @@ export default function AdminTaskViewPage() {
           </p>
         </div>
 
-        <span
-          className={`px-4 py-1 text-sm rounded-full border ${statusStyles[task.status]}`}
-        >
-          {task.status.replace("_", " ")}
-        </span>
+        <div className="flex items-center gap-3">
+          <span
+            className={`px-4 py-1 text-sm rounded-full border ${statusStyles[task.status]}`}
+          >
+            {task.status.replace("_", " ")}
+          </span>
+
+          <Link href={`/dashboard/admin/tasks/manage/${task.id}`}>
+            <Button
+              size="sm"
+              className="bg-gradient-to-r from-[#FF0A0A] to-[#FF7A1A] text-white"
+            >
+              Manage
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* DETAILS */}
@@ -213,7 +221,7 @@ export default function AdminTaskViewPage() {
         </Card>
       )}
 
-      {/* COMMENTS — TWO WAY */}
+      {/* COMMENTS */}
       <Card className="bg-[#1a1a1a] border-[#2a2a2a]">
         <CardContent className="p-6 space-y-4">
           <h2 className="text-lg font-semibold text-white">
@@ -241,7 +249,6 @@ export default function AdminTaskViewPage() {
             ))
           )}
 
-          {/* ADMIN REPLY BOX */}
           <textarea
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}

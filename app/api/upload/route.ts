@@ -44,7 +44,7 @@ export async function POST(req: Request) {
       data: {
         name: file.name,
         url: data.publicUrl,
-        taskId: null, // attach later
+       
       },
     });
     console.log("UPLOAD → TaskFile created:", fileRecord);

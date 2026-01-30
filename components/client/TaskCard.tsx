@@ -1,9 +1,9 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { useRouter } from "next/navigation";
 
-/* ---------------- CLIENT-SAFE TYPES ---------------- */
+/* ---------------- TYPES ---------------- */
 
 type TaskStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED";
 
@@ -19,35 +19,59 @@ type TaskCardProps = {
   task: ClientTask;
 };
 
+/* ---------------- STATUS STYLES ---------------- */
+
+const statusStyles: Record<TaskStatus, string> = {
+  PENDING: "border-yellow-500/30 text-yellow-400 bg-yellow-500/10",
+  IN_PROGRESS: "border-blue-500/30 text-blue-400 bg-blue-500/10",
+  COMPLETED: "border-green-500/30 text-green-400 bg-green-500/10",
+};
+
 /* ---------------- COMPONENT ---------------- */
 
 export default function TaskCard({ task }: TaskCardProps) {
+  const router = useRouter();
+
   return (
-    <Card className="bg-[#1a1a1a] border-[#2a2a2a]">
-      <CardContent className="p-5">
+    <Card
+      onClick={() =>
+        router.push(`/dashboard/client/tasks/${task.id}`)
+      }
+      className="
+        bg-[#1a1a1a]
+        border-[#2a2a2a]
+        cursor-pointer
+        hover:border-[#FF7A1A]/40
+        transition
+      "
+    >
+      <CardContent className="p-5 space-y-3">
+        {/* TOP ROW */}
         <div className="flex items-center justify-between">
           <h3 className="font-medium text-white">
             {task.title}
           </h3>
 
-          <Badge
-            className="
-              bg-gradient-to-r from-[#FF0A0A]/15 to-[#FF7A1A]/15
-              text-[#FF7A1A]
-              border border-[#FF7A1A]/30
-            "
+          {/* ✅ READ-ONLY STATUS */}
+          <span
+            className={`
+              text-xs px-3 py-1 rounded-full border
+              ${statusStyles[task.status]}
+            `}
           >
             {task.status.replace("_", " ")}
-          </Badge>
+          </span>
         </div>
 
+        {/* DESCRIPTION */}
         {task.description && (
-          <p className="mt-2 text-sm text-gray-400">
+          <p className="text-sm text-gray-400">
             {task.description}
           </p>
         )}
 
-        <p className="mt-3 text-xs text-gray-500">
+        {/* DUE DATE */}
+        <p className="text-xs text-gray-500">
           Due:{" "}
           {task.dueDate
             ? new Date(task.dueDate).toDateString()

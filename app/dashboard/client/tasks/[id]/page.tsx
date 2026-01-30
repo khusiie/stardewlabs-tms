@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
+import { useAuthUser } from "@/lib/supabase/useAuthUser";
 
 /* ---------------- TYPES ---------------- */
 
@@ -18,6 +19,11 @@ type Task = {
   priority: string | null;
   dueDate: string | null;
   createdAt: string;
+
+  assignee?: {
+    id: string;
+    email: string;
+  };
 
   files?: {
     id: string;
@@ -56,12 +62,12 @@ const statusStyles: Record<TaskStatus, string> = {
 
 export default function ClientTaskViewPage() {
   const { id } = useParams<{ id: string }>();
+  const { userId } = useAuthUser();
 
   const [task, setTask] = useState<Task | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [updating, setUpdating] = useState(false);
 
-  // 💬 comment state
   const [newComment, setNewComment] = useState("");
   const [sendingComment, setSendingComment] = useState(false);
 
@@ -91,15 +97,12 @@ export default function ClientTaskViewPage() {
 
       const res = await fetch(`/api/tasks/${task.id}/status`, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
       });
 
       if (!res.ok) throw new Error();
 
-      // Optimistic UI update
       setTask((prev) =>
         prev ? { ...prev, status: newStatus } : prev
       );
@@ -128,7 +131,6 @@ export default function ClientTaskViewPage() {
 
       const createdComment = await res.json();
 
-      // ✅ instant UI update
       setTask((prev) =>
         prev
           ? {
@@ -151,6 +153,7 @@ export default function ClientTaskViewPage() {
   if (error) return <p className="text-red-400 p-6">{error}</p>;
   if (!task) return <p className="text-gray-400 p-6">Loading task…</p>;
 
+  const canEditStatus = task.assignee?.id === userId;
   const links = task.links ?? [];
   const files = task.files ?? [];
   const comments = task.comments ?? [];
@@ -170,19 +173,27 @@ export default function ClientTaskViewPage() {
           </p>
         </div>
 
-        {/* STATUS UPDATE */}
-        <select
-          value={task.status}
-          disabled={updating}
-          onChange={(e) =>
-            updateStatus(e.target.value as TaskStatus)
-          }
-          className={`px-4 py-1 text-sm rounded-full border bg-[#0f0f0f] ${statusStyles[task.status]}`}
-        >
-          <option value="PENDING">Pending</option>
-          <option value="IN_PROGRESS">In Progress</option>
-          <option value="COMPLETED">Completed</option>
-        </select>
+        {/* STATUS */}
+        {canEditStatus ? (
+          <select
+            value={task.status}
+            disabled={updating}
+            onChange={(e) =>
+              updateStatus(e.target.value as TaskStatus)
+            }
+            className={`px-4 py-1 text-sm rounded-full border bg-[#0f0f0f] ${statusStyles[task.status]}`}
+          >
+            <option value="PENDING">Pending</option>
+            <option value="IN_PROGRESS">In Progress</option>
+            <option value="COMPLETED">Completed</option>
+          </select>
+        ) : (
+          <span
+            className={`px-4 py-1 text-sm rounded-full border ${statusStyles[task.status]}`}
+          >
+            {task.status.replace("_", " ")}
+          </span>
+        )}
       </div>
 
       {/* DETAILS */}
@@ -228,7 +239,7 @@ export default function ClientTaskViewPage() {
         </Card>
       )}
 
-      {/* NOTE (ONE-TIME) */}
+      {/* NOTE */}
       {task.note && (
         <Card className="bg-[#1a1a1a] border-[#2a2a2a]">
           <CardContent className="p-6">
@@ -324,7 +335,7 @@ export default function ClientTaskViewPage() {
             <textarea
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
-              placeholder="Add an update or reply to admin…"
+              placeholder="Add an update or reply…"
               rows={3}
               className="w-full bg-[#0f0f0f] border border-[#2a2a2a] rounded-md p-3 text-sm text-white resize-none focus:outline-none focus:ring-1 focus:ring-orange-500"
             />

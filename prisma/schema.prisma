@@ -89,12 +89,12 @@ model Task {
 // --------------------
 model TaskFile {
   id        String   @id @default(uuid())
-  taskId   String
+  taskId   String?
   name      String
   url       String
   createdAt DateTime @default(now())
 
-  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  task Task? @relation(fields: [taskId], references: [id], onDelete: Cascade)
 }
 
 // --------------------

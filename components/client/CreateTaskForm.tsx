@@ -64,11 +64,16 @@ export default function CreateTaskForm() {
     setLoading(true);
 
     try {
-      // 1️⃣ Upload files first
-      const uploadedFiles =
-        files.length > 0
-          ? await Promise.all(files.map(uploadFile))
-          : [];
+     const uploadedFileResponses =
+  files.length > 0
+    ? await Promise.all(files.map(uploadFile))
+    : [];
+
+const uploadedFileIds = uploadedFileResponses.map(
+  (file) => file.fileId
+);
+
+
 
       // 2️⃣ Create task
       const res = await fetch("/api/client/tasks", {
@@ -76,15 +81,16 @@ export default function CreateTaskForm() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          title,
-          description,
-          dueDate: dueDate || null,
-          priority,
-          note,                 // 👈 correct field
-          links,
-          files: uploadedFiles, // 👈 uploaded files
-        }),
+    body: JSON.stringify({
+  title,
+  description,
+  dueDate: dueDate || null,
+  priority,
+  note,
+  links,
+  uploadedFileIds, // 🔥 THIS IS THE KEY
+}),
+
       });
 
       if (!res.ok) {

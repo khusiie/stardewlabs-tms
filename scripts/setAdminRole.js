@@ -17,7 +17,7 @@ const supabaseAdmin = createClient(
 );
 
 async function setAdminRole() {
-  const userId = "b026726c-561d-482f-bf48-5f8bcb6fa847"; // 👈 real UUID
+  const userId = "ae9d4a59-349b-4ff1-8e63-7cb8b1e1181e"; // 👈 real UUID
 
   const { data, error } =
     await supabaseAdmin.auth.admin.updateUserById(userId, {

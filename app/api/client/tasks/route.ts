@@ -11,7 +11,6 @@ export async function GET(req: Request) {
   const supabase = await getSupabaseServer();
   const { data: { user } } = await supabase.auth.getUser();
 
-  // ✅ Auth check ONLY
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -55,15 +54,18 @@ export async function POST(req: Request) {
     note,
     dueDate,
     priority = "MEDIUM",
+    links = [],
+    uploadedFileIds = [],
   } = await req.json();
 
-  if (!title?.trim()) {
+  if (!title || !title.trim()) {
     return NextResponse.json(
       { error: "Title is required" },
       { status: 400 }
     );
   }
 
+  // 🔹 Ensure client has a project
   let project = await prisma.project.findFirst({
     where: { ownerId: user.id },
   });
@@ -77,17 +79,35 @@ export async function POST(req: Request) {
     });
   }
 
+  // 🔹 Create task with links
   const task = await prisma.task.create({
     data: {
       title,
       description,
       note,
+      links,
       dueDate: dueDate ? new Date(dueDate) : null,
       priority,
       status: "PENDING",
       projectId: project.id,
     },
   });
+
+if (uploadedFileIds.length > 0) {
+  const result = await prisma.taskFile.updateMany({
+    where: {
+      id: { in: uploadedFileIds },
+    },
+    data: {
+      taskId: task.id,
+    },
+  });
+
+  console.log("TASK CREATE → files attached:", result.count);
+}
+
+  console.log("TASK CREATE → uploadedFileIds:", uploadedFileIds);
+
 
   return NextResponse.json(task, { status: 201 });
 }

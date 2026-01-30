@@ -221,6 +221,57 @@ export default function AdminTaskViewPage() {
         </Card>
       )}
 
+
+
+{/* ATTACHMENTS */}
+{task.files && task.files.length > 0 && (
+  <Card className="bg-[#1a1a1a] border-[#2a2a2a]">
+    <CardContent className="p-6">
+      <p className="text-gray-400 text-sm mb-3">Attachments</p>
+      <div className="space-y-2 text-sm">
+        {task.files.map((file) => (
+          <a
+            key={file.id}
+            href={file.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 text-orange-400 hover:underline"
+          >
+            📎 {file.name}
+          </a>
+        ))}
+      </div>
+    </CardContent>
+  </Card>
+)}
+
+
+    
+
+    {/* REFERENCE LINKS */}
+{task.links && task.links.length > 0 && (
+  <Card className="bg-[#1a1a1a] border-[#2a2a2a]">
+    <CardContent className="p-6">
+      <p className="text-gray-400 text-sm mb-3">Reference Links</p>
+      <ul className="space-y-2 text-sm">
+        {task.links.map((link, i) => (
+          <li key={i}>
+            <a
+              href={link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-orange-400 hover:underline break-all"
+            >
+              {link}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </CardContent>
+  </Card>
+)}
+
+
       {/* COMMENTS */}
       <Card className="bg-[#1a1a1a] border-[#2a2a2a]">
         <CardContent className="p-6 space-y-4">

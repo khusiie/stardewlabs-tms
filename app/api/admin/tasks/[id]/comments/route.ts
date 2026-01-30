@@ -7,19 +7,18 @@ import { getSupabaseServer } from "@/lib/supabase/server";
 import { CommentType } from "@prisma/client";
 
 /* -------------------------------------------------
-   PUBLIC COMMENTS
-   Admin | Task Creator | Assignee
+   INTERNAL COMMENTS (Admin ↔ Assignee ONLY)
 -------------------------------------------------- */
 
 /* =========================
-   GET: Load PUBLIC comments
+   GET: Load INTERNAL comments
    ========================= */
 export async function GET(
   _req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await context.params;
+    const { id } = await context.params; // ✅ FIX
 
     if (!id) {
       return NextResponse.json(
@@ -38,13 +37,9 @@ export async function GET(
       );
     }
 
-    // Load task
     const task = await prisma.task.findUnique({
       where: { id },
-      select: {
-        assigneeId: true,
-        project: { select: { ownerId: true } },
-      },
+      select: { assigneeId: true },
     });
 
     if (!task) {
@@ -54,28 +49,25 @@ export async function GET(
       );
     }
 
-    const isCreator = task.project.ownerId === user.id;
-    const isAssignee = task.assigneeId === user.id;
-
     const dbUser = await prisma.user.findUnique({
       where: { id: user.id },
       select: { role: true },
     });
 
     const isAdmin = dbUser?.role === "ADMIN";
+    const isAssignee = task.assigneeId === user.id;
 
-    if (!isAdmin && !isCreator && !isAssignee) {
+    if (!isAdmin && !isAssignee) {
       return NextResponse.json(
         { error: "Forbidden" },
         { status: 403 }
       );
     }
 
-    // ✅ FETCH ONLY PUBLIC COMMENTS
     const comments = await prisma.comment.findMany({
       where: {
         taskId: id,
-        type: CommentType.PUBLIC, // 🔒 THIS WAS MISSING
+        type: CommentType.INTERNAL,
       },
       orderBy: { createdAt: "asc" },
       include: {
@@ -91,7 +83,7 @@ export async function GET(
 
     return NextResponse.json(comments);
   } catch (error) {
-    console.error("GET public comments error:", error);
+    console.error("GET internal comments error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -100,14 +92,14 @@ export async function GET(
 }
 
 /* =========================
-   POST: Add PUBLIC comment
+   POST: Add INTERNAL comment
    ========================= */
 export async function POST(
   req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await context.params;
+    const { id } = await context.params; // ✅ FIX
 
     if (!id) {
       return NextResponse.json(
@@ -137,10 +129,7 @@ export async function POST(
 
     const task = await prisma.task.findUnique({
       where: { id },
-      select: {
-        assigneeId: true,
-        project: { select: { ownerId: true } },
-      },
+      select: { assigneeId: true },
     });
 
     if (!task) {
@@ -150,17 +139,15 @@ export async function POST(
       );
     }
 
-    const isCreator = task.project.ownerId === user.id;
-    const isAssignee = task.assigneeId === user.id;
-
     const dbUser = await prisma.user.findUnique({
       where: { id: user.id },
       select: { role: true },
     });
 
     const isAdmin = dbUser?.role === "ADMIN";
+    const isAssignee = task.assigneeId === user.id;
 
-    if (!isAdmin && !isCreator && !isAssignee) {
+    if (!isAdmin && !isAssignee) {
       return NextResponse.json(
         { error: "Forbidden" },
         { status: 403 }
@@ -172,7 +159,7 @@ export async function POST(
         content: content.trim(),
         taskId: id,
         userId: user.id,
-        type: CommentType.PUBLIC,
+        type: CommentType.INTERNAL,
       },
       include: {
         user: {
@@ -187,7 +174,7 @@ export async function POST(
 
     return NextResponse.json(comment, { status: 201 });
   } catch (error) {
-    console.error("POST public comment error:", error);
+    console.error("POST internal comment error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

@@ -4,15 +4,17 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-   directUrl = env("DIRECT_URL")
-
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
+//
 // --------------------
 // Enums
 // --------------------
+//
+
 enum Role {
   CLIENT
   ADMIN
@@ -30,9 +32,22 @@ enum TaskPriority {
   HIGH
 }
 
+/*
+  NEW ENUM
+  - PUBLIC   → Client + Admin + Assignee
+  - INTERNAL → Admin + Assignee only
+*/
+enum CommentType {
+  PUBLIC
+  INTERNAL
+}
+
+//
 // --------------------
 // User model
 // --------------------
+//
+
 model User {
   id        String    @id
   email     String    @unique
@@ -45,9 +60,12 @@ model User {
   comments  Comment[] @relation("UserComments")
 }
 
+//
 // --------------------
 // Project model
 // --------------------
+//
+
 model Project {
   id          String   @id @default(uuid())
   name        String
@@ -55,13 +73,16 @@ model Project {
   ownerId     String
   createdAt   DateTime @default(now())
 
-  owner       User     @relation("UserProjects", fields: [ownerId], references: [id])
-  tasks       Task[]
+  owner User   @relation("UserProjects", fields: [ownerId], references: [id])
+  tasks Task[]
 }
 
+//
 // --------------------
 // Task model
 // --------------------
+//
+
 model Task {
   id          String       @id @default(uuid())
   title       String
@@ -78,18 +99,21 @@ model Task {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
-  project     Project      @relation(fields: [projectId], references: [id])
-  assignee    User?        @relation("AssignedTasks", fields: [assigneeId], references: [id])
-  comments    Comment[]    @relation("TaskComments")
-  files       TaskFile[]
+  project  Project   @relation(fields: [projectId], references: [id])
+  assignee User?     @relation("AssignedTasks", fields: [assigneeId], references: [id])
+  comments Comment[] @relation("TaskComments")
+  files    TaskFile[]
 }
 
+//
 // --------------------
 // TaskFile model
 // --------------------
+//
+
 model TaskFile {
   id        String   @id @default(uuid())
-  taskId   String
+  taskId    String
   name      String
   url       String
   createdAt DateTime @default(now())
@@ -97,15 +121,19 @@ model TaskFile {
   task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
 }
 
+//
 // --------------------
-// Comment model
+// Comment model (UPDATED)
 // --------------------
+//
+
 model Comment {
-  id        String   @id @default(uuid())
+  id        String      @id @default(uuid())
   content   String
+  type      CommentType @default(PUBLIC) // 👈 KEY ADDITION
   taskId    String
   userId    String
-  createdAt DateTime @default(now())
+  createdAt DateTime    @default(now())
 
   task Task @relation("TaskComments", fields: [taskId], references: [id], onDelete: Cascade)
   user User @relation("UserComments", fields: [userId], references: [id])

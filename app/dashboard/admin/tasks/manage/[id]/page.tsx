@@ -96,7 +96,7 @@ export default function ManageTaskPage() {
 
     setCommentLoading(true);
 
-    const res = await fetch(`/api/admin/tasks/${id}/comments`, {
+    const res = await fetch(`/api/tasks/${id}/comments`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ content: newComment }),
